@@ -1,0 +1,28 @@
+# 服务器配置
+server:
+  port: 8080
+  mode: debug  # debug, release, test
+
+# 数据库配置
+database:
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    username: root
+    password: 123456
+    dbname: byglg
+    charset: utf8mb4
+    max_idle_conns: 10
+    max_open_conns: 100
+    log_level: info  # silent, error, warn, info
+
+# JWT配置
+jwt:
+  secret: byglg-game-hall-secret-key-2024
+  expire: 86400  # 24小时，单位秒
+
+# 日志配置
+log:
+  level: info
+  format: json  # json, console
+  output: logs/app.log

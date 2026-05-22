@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>全民抢车位</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 顶部状态栏 -->
+<div id="topBar" class="top-bar">
+  <div class="top-left">
+    <img class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='30' fill='%23ff6b35'/%3E%3Ctext x='30' y='38' text-anchor='middle' fill='white' font-size='28'%3E车%3C/text%3E%3C/svg%3E" alt="头像">
+    <div class="player-info">
+      <span class="nickname" id="topNickname">老司机王</span>
+      <span class="level-badge" id="topLevel">Lv.25</span>
+    </div>
+  </div>
+  <div class="top-resources">
+    <div class="res-item gold">
+      <span class="res-icon">🪙</span>
+      <span id="topGold">1,250,000</span>
+    </div>
+    <div class="res-item lucky">
+      <span class="res-icon">🎫</span>
+      <span id="topLuckyCard">5</span>
+      <span class="btn-get" id="btnGetLucky">+获取</span>
+    </div>
+  </div>
+</div>
+
+<!-- 主内容区 -->
+<div id="mainContent" class="main-content">
+  
+  <!-- ==================== 首页 ==================== -->
+  <div id="tabHome" class="tab-page active">
+    
+    <!-- 签到面板 -->
+    <div class="card sign-card" id="signCard">
+      <div class="sign-header">
+        <span class="sign-title">📅 每日签到</span>
+        <span class="sign-status" id="signStatus">未签到</span>
+      </div>
+      <div class="sign-btns">
+        <button class="btn btn-sign-normal" id="btnSignNormal">普通签到<br><small>+5,000金币</small></button>
+        <button class="btn btn-sign-lucky" id="btnSignLucky">🎫 幸运卡签到<br><small>消耗1张卡 +50,000金币</small></button>
+      </div>
+    </div>
+
+    <!-- 我的车辆概览 -->
+    <div class="card">
+      <div class="card-title">🚗 我的车辆 <span class="tag" id="carSummary">3/6 辆</span></div>
+      <div class="car-mini-list" id="homeCarList"></div>
+    </div>
+
+    <!-- 我的车位状况 -->
+    <div class="card">
+      <div class="card-title">🅿️ 我的车位 <span class="tag" id="spaceSummary">3/6 个</span></div>
+      <div class="space-mini-list" id="homeSpaceList"></div>
+    </div>
+
+    <!-- 最近动态 -->
+    <div class="card">
+      <div class="card-title">📋 最近访客动态</div>
+      <div class="visitor-list" id="homeVisitorList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 车库 ==================== -->
+  <div id="tabGarage" class="tab-page">
+    <div class="garage-header">
+      <span class="section-title">🏠 我的车库</span>
+      <span class="sub-info" id="garageInfo">拥有的车辆可在此进行操作</span>
+    </div>
+    <div class="car-card-list" id="garageCarList"></div>
+    
+    <!-- 车辆详情弹窗 -->
+    <div class="modal-overlay" id="carDetailModal">
+      <div class="modal-box">
+        <div class="modal-title" id="modalCarName">车辆名称</div>
+        <div class="modal-content" id="modalCarContent"></div>
+        <div class="modal-actions" id="modalCarActions"></div>
+        <button class="btn btn-close" onclick="closeCarDetail()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 车位管理 ==================== -->
+  <div id="tabSpace" class="tab-page">
+    <div class="card">
+      <div class="card-title">🅿️ 我的车位 (车位倍率由等级决定)</div>
+      <div class="space-grid" id="mySpaceGrid"></div>
+    </div>
+    
+    <!-- 在我的车位上停的车 -->
+    <div class="card">
+      <div class="card-title">🚙 停在我家的车 (可贴条)</div>
+      <div class="parked-on-me-list" id="parkedOnMeList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 通讯录 ==================== -->
+  <div id="tabContact" class="tab-page">
+    <!-- 搜索 -->
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchUid" placeholder="输入玩家ID搜索 (如: 88A4C)" maxlength="10">
+      <button class="btn btn-search" id="btnSearch">🔍 搜索</button>
+    </div>
+    <!-- 搜索结果名片 -->
+    <div class="card" id="searchResultCard" style="display:none;">
+      <div class="player-card" id="searchPlayerCard"></div>
+      <div class="player-card-actions" id="searchPlayerActions"></div>
+    </div>
+    
+    <!-- 三个Tab -->
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-subtab="friends">👥 好友</button>
+      <button class="sub-tab" data-subtab="enemies">💀 仇人</button>
+      <button class="sub-tab" data-subtab="visitors">📋 访客记录</button>
+    </div>
+    
+    <div class="sub-tab-page active" id="subFriends">
+      <div class="list-sort-hint">按「有空位 & 等级高」优先排序</div>
+      <div class="contact-list" id="friendList"></div>
+    </div>
+    <div class="sub-tab-page" id="subEnemies">
+      <div class="list-sort-hint">按「仇恨值」排序</div>
+      <div class="contact-list" id="enemyList"></div>
+    </div>
+    <div class="sub-tab-page" id="subVisitors">
+      <div class="list-sort-hint">最近24小时内来访记录</div>
+      <div class="contact-list" id="visitorLogList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 图鉴/商店 ==================== -->
+  <div id="tabShop" class="tab-page">
+    <div class="card">
+      <div class="card-title">📖 车辆图鉴 <span class="tag">当前可购买到 Lv.25</span></div>
+      <div class="catalog-list" id="catalogList"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部导航栏 -->
+<div class="bottom-nav">
+  <button class="nav-btn active" data-tab="tabHome">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">首页</span>
+  </button>
+  <button class="nav-btn" data-tab="tabGarage">
+    <span class="nav-icon">🏎️</span>
+    <span class="nav-label">车库</span>
+  </button>
+  <button class="nav-btn" data-tab="tabSpace">
+    <span class="nav-icon">🅿️</span>
+    <span class="nav-label">车位</span>
+  </button>
+  <button class="nav-btn" data-tab="tabContact">
+    <span class="nav-icon">📞</span>
+    <span class="nav-label">通讯录</span>
+  </button>
+  <button class="nav-btn" data-tab="tabShop">
+    <span class="nav-icon">📖</span>
+    <span class="nav-label">图鉴</span>
+  </button>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
+<script src="js/mock_data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

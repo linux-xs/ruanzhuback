@@ -1,0 +1,17 @@
+# 全民抢车位 - 数据库配置
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  database: qmqcw
+  charset: utf8mb4
+  max_open_conns: 100
+  max_idle_conns: 10
+
+# 系统配置
+system:
+  bot_count: 100
+  bot_cron_interval: 10
+  bot_ticket_threshold: 180
+  visitor_log_keep_hours: 24

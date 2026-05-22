@@ -1,0 +1,19 @@
+# 全民抢车位 - 服务配置
+server:
+  port: 8081
+  mode: debug
+
+# 游戏数值配置
+game:
+  max_level: 100
+  max_cars: 10
+  max_spaces: 10
+  sell_back_rate: 0.85
+  recall_rate: 0.90
+  ticket_rate: 0.80
+  ticket_owner_rate: 0.20
+  park_full_hours: 8
+  lock_period_minutes: 59
+  escape_period_minutes: 119
+  kill_period_minutes: 479
+  daily_lucky_card_limit: 10

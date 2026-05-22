@@ -1,0 +1,21 @@
+{
+    "setting": {
+        "urlCheck": true,
+        "es6": true,
+        "postcss": true,
+        "minified": true,
+        "newFeature": true,
+        "autoCompile": true,
+        "compileHotReLoad": true,
+        "nativeCompile": true
+    },
+    "appid": "ttac97da2a32f03fe102",
+    "projectname": "byglg",
+    "douyinProjectType": "native",
+    "condition": {
+        "game": {
+            "current": -1,
+            "list": []
+        }
+    }
+}
