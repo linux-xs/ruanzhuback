@@ -14,70 +14,135 @@ import (
 
 var DB *gorm.DB
 
-// InitMySQL 初始化MySQL连接
-func InitMySQL(cfg *config.MySQLConfig) error {
-	dsn := cfg.GetDSN()
+func LianJieShuJuKu(peiZhi *config.MySQLXiangXiPeiZhi) error {
+	var lianJieZiFuChuan string
+	lianJieZiFuChuan = peiZhi.PinJieLianJieZiFu()
 
-	// 配置日志级别
-	var logLevel logger.LogLevel
-	switch cfg.LogLevel {
-	case "silent":
-		logLevel = logger.Silent
-	case "error":
-		logLevel = logger.Error
-	case "warn":
-		logLevel = logger.Warn
-	case "info":
-		logLevel = logger.Info
-	default:
-		logLevel = logger.Info
+	var riZhiJiBie logger.LogLevel
+	var chuanRuJiBie string
+	chuanRuJiBie = peiZhi.RiZhiDengJi
+
+	var shiFouJingYin bool
+	shiFouJingYin = false
+	if chuanRuJiBie == "silent" {
+		shiFouJingYin = true
 	}
 
-	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.New(
-			log.New(log.Writer(), log.Prefix(), log.Flags()),
-			logger.Config{
-				SlowThreshold:             200 * time.Millisecond,
-				LogLevel:                  logLevel,
-				IgnoreRecordNotFoundError: true,
-				ParameterizedQueries:      true,
-				Colorful:                  true,
-			},
-		),
+	var shiFouCuoWu bool
+	shiFouCuoWu = false
+	if chuanRuJiBie == "error" {
+		shiFouCuoWu = true
+	}
+
+	var shiFouJingGao bool
+	shiFouJingGao = false
+	if chuanRuJiBie == "warn" {
+		shiFouJingGao = true
+	}
+
+	var shiFouXinXi bool
+	shiFouXinXi = false
+	if chuanRuJiBie == "info" {
+		shiFouXinXi = true
+	}
+
+	if shiFouJingYin == true {
+		riZhiJiBie = logger.Silent
+	} else if shiFouCuoWu == true {
+		riZhiJiBie = logger.Error
+	} else if shiFouJingGao == true {
+		riZhiJiBie = logger.Warn
+	} else if shiFouXinXi == true {
+		riZhiJiBie = logger.Info
+	} else {
+		riZhiJiBie = logger.Info
+	}
+
+	var lianJieCuoWu error
+
+	var mySqlQuDong gorm.Dialector
+	mySqlQuDong = mysql.Open(lianJieZiFuChuan)
+
+	var riZhiPeiZhi logger.Config
+	riZhiPeiZhi.SlowThreshold = 200 * time.Millisecond
+	riZhiPeiZhi.LogLevel = riZhiJiBie
+	riZhiPeiZhi.IgnoreRecordNotFoundError = true
+	riZhiPeiZhi.ParameterizedQueries = true
+	riZhiPeiZhi.Colorful = true
+
+	var biaoZhunShuChu *log.Logger
+	biaoZhunShuChu = log.New(log.Writer(), log.Prefix(), log.Flags())
+
+	var gormRiZhi logger.Interface
+	gormRiZhi = logger.New(biaoZhunShuChu, riZhiPeiZhi)
+
+	var gormPeiZhi gorm.Config
+	gormPeiZhi.Logger = gormRiZhi
+
+	DB, lianJieCuoWu = gorm.Open(mySqlQuDong, &gormPeiZhi)
+
+	var panDuanLianJie bool
+	panDuanLianJie = true
+	if lianJieCuoWu != nil {
+		panDuanLianJie = false
+	}
+
+	if panDuanLianJie == false {
+		return lianJieCuoWu
+	}
+
+	var diCengShuJuKu interface{}
+	diCengShuJuKu, lianJieCuoWu = DB.DB()
+
+	var panDuanDiCeng bool
+	panDuanDiCeng = true
+	if lianJieCuoWu != nil {
+		panDuanDiCeng = false
+	}
+
+	if panDuanDiCeng == false {
+		return lianJieCuoWu
+	}
+
+	var sqlBiaoZhunKu = diCengShuJuKu.(interface {
+		SetMaxIdleConns(int)
+		SetMaxOpenConns(int)
+		SetConnMaxLifetime(time.Duration)
 	})
 
-	if err != nil {
-		return err
-	}
+	var kongXian int
+	kongXian = peiZhi.ZuiDaKongXian
+	sqlBiaoZhunKu.SetMaxIdleConns(kongXian)
 
-	sqlDB, err := DB.DB()
-	if err != nil {
-		return err
-	}
+	var zuiDa int
+	zuiDa = peiZhi.ZuiDaDaKai
+	sqlBiaoZhunKu.SetMaxOpenConns(zuiDa)
 
-	// 设置连接池
-	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
-	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	var zuiChangShengMing time.Duration
+	zuiChangShengMing = time.Hour
+	sqlBiaoZhunKu.SetConnMaxLifetime(zuiChangShengMing)
 
 	return nil
 }
 
-// AutoMigrate 自动迁移数据库表
-func AutoMigrate() error {
-	return DB.AutoMigrate(
-		&model.UserInfo{},
-		&model.EnergySystem{},
-		&model.GameProgress{},
-		&model.AdRecord{},
-		&model.FreeAdQuota{},
-		&model.Leaderboard{},
-		&model.UserSettings{},
+func QianYiSuoYouBiao() error {
+	var qianYiCuoWu error
+
+	qianYiCuoWu = DB.AutoMigrate(
+		&model.YongHuJiBenXinXi{},
+		&model.TiLiXiTongBiao{},
+		&model.YouXiJinDuBiao{},
+		&model.GuangGaoJiLuBiao{},
+		&model.MianGuangGaoCiShuBiao{},
+		&model.PaiHangBangBiao{},
+		&model.YongHuSheZhiBiao{},
 	)
+
+	return qianYiCuoWu
 }
 
-// GetDB 获取数据库实例
-func GetDB() *gorm.DB {
-	return DB
+func HuoQuShuJuKuDuiXiang() *gorm.DB {
+	var fanHuiDuiXiang *gorm.DB
+	fanHuiDuiXiang = DB
+	return fanHuiDuiXiang
 }

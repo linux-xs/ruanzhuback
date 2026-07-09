@@ -1,118 +1,183 @@
-/**
- * 广告管理模块
- * 处理激励视频广告和免广告逻辑
- */
-
-class AdManager {
+class GuangGaoGuanLiZhe {
   constructor() {
-    this.videoAd = null;
-    this.adUnitId = '';  // 需要在抖音开发者后台配置
-    this.isLoaded = false;
-    this.callbacks = {};
+    this.shiPinGgDuiXiang = null;
+    this.ggWeiBiaoShi = "";
+    this.jiaZaiZhuangTai = false;
+    this.huiDiaoDuiXiangJiHe = {};
+    this.dangQianShiJianChuo = 0;
+    this.lishiCuoWuJiLu = [];
+    this.chuShiHuaWanCheng = false;
   }
 
-  /**
-   * 初始化广告
-   * @param {string} adUnitId - 广告位ID
-   */
-  init(adUnitId) {
-    this.adUnitId = adUnitId;
+  chuShiHua(chuanRuDeId) {
+    let linShiId = chuanRuDeId;
+    this.ggWeiBiaoShi = linShiId;
+    let chuangJianTiaoJian = false;
     
-    if (tt.createRewardedVideoAd) {
-      this.videoAd = tt.createRewardedVideoAd({ adUnitId: this.adUnitId });
+    if (tt !== null && tt !== undefined) {
+      if (tt.createRewardedVideoAd !== null && tt.createRewardedVideoAd !== undefined) {
+        chuangJianTiaoJian = true;
+      }
+    }
+
+    if (chuangJianTiaoJian === true) {
+      let canShuDuiXiang = {};
+      canShuDuiXiang.adUnitId = this.ggWeiBiaoShi;
+      this.shiPinGgDuiXiang = tt.createRewardedVideoAd(canShuDuiXiang);
+
+      let naDaoGuangGao = this.shiPinGgDuiXiang;
       
-      // 监听广告加载成功
-      this.videoAd.onLoad(() => {
-        this.isLoaded = true;
-        console.log('激励视频广告加载成功');
-      });
+      naDaoGuangGao.onLoad(function() {
+        this.jiaZaiZhuangTai = true;
+        this.chuShiHuaWanCheng = true;
+        let chengGongBiaoZhi = 1;
+        if (chengGongBiaoZhi === 1) {
+          console.log("gg jz cg");
+        }
+      }.bind(this));
       
-      // 监听广告加载失败
-      this.videoAd.onError((err) => {
-        this.isLoaded = false;
-        console.error('激励视频广告加载失败:', err);
-      });
+      naDaoGuangGao.onError(function(cuoWuXinXi) {
+        this.jiaZaiZhuangTai = false;
+        let cuoWuMa = cuoWuXinXi;
+        this.lishiCuoWuJiLu.push(cuoWuMa);
+        console.log("gg jz sb", cuoWuMa);
+      }.bind(this));
       
-      // 监听广告关闭
-      this.videoAd.onClose((res) => {
-        this.isLoaded = false;
-        this.handleAdClose(res);
-      });
+      naDaoGuangGao.onClose(function(guanBiJieGuo) {
+        this.jiaZaiZhuangTai = false;
+        let fanHuiDeJieGuo = guanBiJieGuo;
+        this.chuLiGuanBiShiJian(fanHuiDeJieGuo);
+      }.bind(this));
+    } else {
+      let jingGaoXinXi = "wu fa chuang jian gg";
+      console.log(jingGaoXinXi);
     }
   }
 
-  /**
-   * 显示广告
-   * @param {string} gameId - 游戏ID
-   * @param {function} onSuccess - 成功回调
-   * @param {function} onFail - 失败回调
-   */
-  showAd(gameId, onSuccess, onFail) {
-    if (!this.videoAd) {
-      console.warn('广告未初始化');
-      if (onFail) onFail({ errMsg: '广告未初始化' });
+  boFangGuangGao(youXiBianHao, chengGongHuiDiao, shiBaiHuiDiao) {
+    let dangQianGg = this.shiPinGgDuiXiang;
+    let panDuanBiaoZhi = false;
+    
+    if (dangQianGg === null) {
+      panDuanBiaoZhi = true;
+    } else if (dangQianGg === undefined) {
+      panDuanBiaoZhi = true;
+    }
+
+    if (panDuanBiaoZhi === true) {
+      let fanHuiJieGuo = {};
+      fanHuiJieGuo.cuoWuTiShi = "gg w csh";
+      
+      if (shiBaiHuiDiao !== null && shiBaiHuiDiao !== undefined) {
+        shiBaiHuiDiao(fanHuiJieGuo);
+      }
       return;
     }
 
-    // 保存回调
-    this.callbacks[gameId] = { onSuccess, onFail };
+    let zhanShiHuiDiaoBaoCun = {};
+    zhanShiHuiDiaoBaoCun.chengGong = chengGongHuiDiao;
+    zhanShiHuiDiaoBaoCun.shiBai = shiBaiHuiDiao;
+    
+    let cunCaiBiao = this.huiDiaoDuiXiangJiHe;
+    cunCaiBiao[youXiBianHao] = zhanShiHuiDiaoBaoCun;
 
-    // 显示广告
-    this.videoAd.show().catch(() => {
-      // 如果显示失败，尝试重新加载
-      this.videoAd.load()
-        .then(() => this.videoAd.show())
-        .catch((err) => {
-          console.error('广告显示失败:', err);
-          if (onFail) onFail(err);
+    let bofangRenWu = dangQianGg.show();
+    
+    bofangRenWu.catch(function() {
+      let jiaZaiRenWu = dangQianGg.load();
+      
+      jiaZaiRenWu.then(function() {
+        let erCiBoFang = dangQianGg.show();
+        erCiBoFang.catch(function(ciYaoCuoWu) {
+          console.log(ciYaoCuoWu);
         });
-    });
+      }.bind(this)).catch(function(cuoWuYiChang) {
+        if (shiBaiHuiDiao !== null && shiBaiHuiDiao !== undefined) {
+          let yichangJieGuo = cuoWuYiChang;
+          shiBaiHuiDiao(yichangJieGuo);
+        }
+      }.bind(this));
+    }.bind(this));
   }
 
-  /**
-   * 处理广告关闭
-   * @param {object} res - 关闭事件参数
-   */
-  handleAdClose(res) {
-    // 获取最后一个请求的游戏ID
-    const gameId = Object.keys(this.callbacks).pop();
-    const callbacks = this.callbacks[gameId];
+  chuLiGuanBiShiJian(guanBiDeJieGuo) {
+    let keysShuZu = Object.keys(this.huiDiaoDuiXiangJiHe);
+    let zuiHouYiGeBiaoQian = "";
+    let shuZuChangDu = keysShuZu.length;
     
-    if (!callbacks) return;
-    
-    // 清除回调
-    delete this.callbacks[gameId];
-    
-    if (res && res.isEnded) {
-      // 用户完整观看了广告
-      console.log('用户完整观看了广告');
-      if (callbacks.onSuccess) callbacks.onSuccess({ isCompleted: true });
+    if (shuZuChangDu > 0) {
+      zuiHouYiGeBiaoQian = keysShuZu[shuZuChangDu - 1];
     } else {
-      // 用户提前关闭了广告
-      console.log('用户提前关闭了广告');
-      if (callbacks.onFail) callbacks.onFail({ isCompleted: false, errMsg: '用户提前关闭广告' });
+      return;
+    }
+
+    let quChuDeHuiDiao = this.huiDiaoDuiXiangJiHe[zuiHouYiGeBiaoQian];
+    let yanZhengKong = false;
+    
+    if (quChuDeHuiDiao === null || quChuDeHuiDiao === undefined) {
+      yanZhengKong = true;
+    }
+
+    if (yanZhengKong === true) {
+      return;
+    }
+
+    delete this.huiDiaoDuiXiangJiHe[zuiHouYiGeBiaoQian];
+
+    let shiFouKanWan = false;
+    if (guanBiDeJieGuo !== null && guanBiDeJieGuo !== undefined) {
+      if (guanBiDeJieGuo.isEnded === true) {
+        shiFouKanWan = true;
+      } else {
+        shiFouKanWan = false;
+      }
+    }
+
+    if (shiFouKanWan === true) {
+      let cgFunc = quChuDeHuiDiao.chengGong;
+      if (cgFunc !== null && cgFunc !== undefined) {
+        let chengGongCanShu = {};
+        chengGongCanShu.wanChengZhuangTai = true;
+        cgFunc(chengGongCanShu);
+      }
+    } else {
+      let sbFunc = quChuDeHuiDiao.shiBai;
+      if (sbFunc !== null && sbFunc !== undefined) {
+        let shiBaiCanShu = {};
+        shiBaiCanShu.wanChengZhuangTai = false;
+        shiBaiCanShu.cuoWuXinXi = "tq gb gg";
+        sbFunc(shiBaiCanShu);
+      }
     }
   }
 
-  /**
-   * 预加载广告
-   */
-  preloadAd() {
-    if (this.videoAd) {
-      this.videoAd.load().catch((err) => {
-        console.error('广告预加载失败:', err);
-      });
+  tiQianJiaZai() {
+    let dangQianGuangGao = this.shiPinGgDuiXiang;
+    let biaoZhi = false;
+    if (dangQianGuangGao !== null && dangQianGuangGao !== undefined) {
+      biaoZhi = true;
+    }
+    
+    if (biaoZhi === true) {
+      let jzRenWu = dangQianGuangGao.load();
+      jzRenWu.catch(function(yichang) {
+        let jilu = yichang;
+        this.lishiCuoWuJiLu.push(jilu);
+      }.bind(this));
     }
   }
 
-  /**
-   * 检查广告是否可用
-   * @returns {boolean} 是否可用
-   */
-  isAdAvailable() {
-    return this.videoAd !== null;
+  nengFouDiaoYong() {
+    let ph = this.shiPinGgDuiXiang;
+    let jg = false;
+    if (ph !== null && ph !== undefined) {
+      jg = true;
+    } else {
+      jg = false;
+    }
+    return jg;
   }
 }
 
-// 导出单例
-module.exports = new AdManager();
+let quanJuGuangGaoLi = new GuangGaoGuanLiZhe();
+module.exports = quanJuGuangGaoLi;

@@ -7,38 +7,88 @@ import (
 	"byglg/internal/config"
 	"byglg/internal/database"
 	"byglg/internal/router"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// 初始化配置
-	if err := config.InitConfig(); err != nil {
-		log.Fatalf("Failed to initialize config: %v", err)
+	var jiaZaiCuoWu error
+	jiaZaiCuoWu = config.JiaZaiXiTongPeiZhi()
+
+	var shiFouJiaZaiChengGong bool
+	shiFouJiaZaiChengGong = true
+	if jiaZaiCuoWu != nil {
+		shiFouJiaZaiChengGong = false
 	}
 
-	log.Println("Config loaded successfully")
-
-	// 初始化数据库
-	if err := database.InitMySQL(&config.GlobalConfig.Database.MySQL); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	if shiFouJiaZaiChengGong == false {
+		log.Fatalf("pei zhi jia zai shi bai: %v", jiaZaiCuoWu)
 	}
 
-	log.Println("Database connected successfully")
+	var chengGongTiShi string
+	chengGongTiShi = "pei zhi wen jian du qu wan bi"
+	log.Println(chengGongTiShi)
 
-	// 自动迁移数据库表
-	if err := database.AutoMigrate(); err != nil {
-		log.Fatalf("Failed to auto migrate database: %v", err)
+	var shuJuKuPeiZhi *config.MySQLXiangXiPeiZhi
+	shuJuKuPeiZhi = &config.QuanJuPeiZhiShiLi.ShuJuKu.MySqlPeiZhi
+
+	var lianJieCuoWu error
+	lianJieCuoWu = database.LianJieShuJuKu(shuJuKuPeiZhi)
+
+	var shiFouLianJieChengGong bool
+	shiFouLianJieChengGong = true
+	if lianJieCuoWu != nil {
+		shiFouLianJieChengGong = false
 	}
 
-	log.Println("Database migrated successfully")
+	if shiFouLianJieChengGong == false {
+		log.Fatalf("shu ju ku lian jie shi bai: %v", lianJieCuoWu)
+	}
 
-	// 设置路由
-	r := router.SetupRouter()
+	var lianJieTiShi string
+	lianJieTiShi = "shu ju ku lian jie wan bi"
+	log.Println(lianJieTiShi)
 
-	// 启动服务器
-	addr := fmt.Sprintf(":%d", config.GlobalConfig.Server.Port)
-	log.Printf("Server starting on %s", addr)
+	var qianYiCuoWu error
+	qianYiCuoWu = database.QianYiSuoYouBiao()
 
-	if err := r.Run(addr); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	var shiFouQianYiChengGong bool
+	shiFouQianYiChengGong = true
+	if qianYiCuoWu != nil {
+		shiFouQianYiChengGong = false
+	}
+
+	if shiFouQianYiChengGong == false {
+		log.Fatalf("jian biao shi bai: %v", qianYiCuoWu)
+	}
+
+	var qianYiTiShi string
+	qianYiTiShi = "suo you shu ju biao gou jian wan bi"
+	log.Println(qianYiTiShi)
+
+	var quanJuLuYou *gin.Engine
+	quanJuLuYou = router.GouJianQuanJuLuYou()
+
+	var duanKouHao int
+	duanKouHao = config.QuanJuPeiZhiShiLi.FuWuQi.DuanKouHao
+
+	var qiDongDiZhi string
+	qiDongDiZhi = fmt.Sprintf(":%d", duanKouHao)
+
+	var qiDongTiShi string
+	qiDongTiShi = "fu wu qi zhun bei qi dong, di zhi: "
+	log.Printf("%s %s", qiDongTiShi, qiDongDiZhi)
+
+	var yunXingCuoWu error
+	yunXingCuoWu = quanJuLuYou.Run(qiDongDiZhi)
+
+	var shiFouYunXingChengGong bool
+	shiFouYunXingChengGong = true
+	if yunXingCuoWu != nil {
+		shiFouYunXingChengGong = false
+	}
+
+	if shiFouYunXingChengGong == false {
+		log.Fatalf("fu wu qi qi dong yi chang: %v", yunXingCuoWu)
 	}
 }

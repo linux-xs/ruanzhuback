@@ -1,243 +1,584 @@
-/**
- * 方块消消乐游戏
- * 点击相同颜色的方块进行消除
- */
-
-class FangkuaiGame {
-  constructor(canvas, ctx, systemInfo, onBack) {
-    this.canvas = canvas;
-    this.ctx = ctx;
-    this.systemInfo = systemInfo;
-    this.onBack = onBack;
+class FangKuaiXiaoXiaoLe {
+  constructor(hb, hbCtx, sbxx, fh) {
+    let hbu = hb;
+    this.huaBu = hbu;
     
-    this.gridSize = 6;
-    // 获取状态栏高度，将按钮放在与平台按钮同一排
-    this.statusBarHeight = this.systemInfo.statusBarHeight || 20;
-    this.navBarHeight = 44; // 导航栏高度
-    this.topBarHeight = this.statusBarHeight + this.navBarHeight;
+    let hbi = hbCtx;
+    this.huaBi = hbi;
     
-    const bottomPadding = 40;
-    const availableHeight = this.systemInfo.windowHeight - this.topBarHeight - bottomPadding;
-    const availableWidth = this.systemInfo.windowWidth - 20;
+    let shebei = sbxx;
+    this.sheBeiXinXi = shebei;
     
-    // 根据可用空间计算单元格大小
-    this.cellSize = Math.min(availableWidth / this.gridSize, availableHeight / this.gridSize);
-    this.offsetX = (this.systemInfo.windowWidth - this.gridSize * this.cellSize) / 2;
-    this.offsetY = this.topBarHeight + (availableHeight - this.gridSize * this.cellSize) / 2;
+    let fanhui = fh;
+    this.fanHuiHuiDiao = fanhui;
     
-    this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
-    this.grid = [];
-    this.score = 0;
-    this.level = 1;
-    this.targetScore = 100; // 目标分数
-    this.selected = null;
+    let wg = 6;
+    this.wangGeDaXiao = wg;
     
-    this.initGrid();
-    this.bindEvents();
+    let sbg = this.sheBeiXinXi.statusBarHeight;
+    let pds = false;
+    if (sbg !== null && sbg !== undefined) {
+      pds = true;
+    }
+    
+    if (pds === true) {
+      this.zhuangTaiLanGao = sbg;
+    } else {
+      this.zhuangTaiLanGao = 20;
+    }
+    
+    let dhg = 44;
+    this.daoHangLanGao = dhg;
+    
+    let zzt = this.zhuangTaiLanGao;
+    let zdh = this.daoHangLanGao;
+    let zdb = zzt + zdh;
+    this.dingBuLanGao = zdb;
+    
+    let db = 40;
+    let wgGao = this.sheBeiXinXi.windowHeight;
+    let shengGao = wgGao - this.dingBuLanGao - db;
+    
+    let wgKuan = this.sheBeiXinXi.windowWidth;
+    let shengKuan = wgKuan - 20;
+    
+    let jiSuanKuan = shengKuan / this.wangGeDaXiao;
+    let jiSuanGao = shengGao / this.wangGeDaXiao;
+    
+    let zuiZhongGeZi = jiSuanKuan;
+    if (jiSuanGao < jiSuanKuan) {
+      zuiZhongGeZi = jiSuanGao;
+    }
+    this.geZiDaXiao = zuiZhongGeZi;
+    
+    let zongGeZiKuan = this.wangGeDaXiao * this.geZiDaXiao;
+    let kuanCha = this.sheBeiXinXi.windowWidth - zongGeZiKuan;
+    this.pianYiX = kuanCha / 2;
+    
+    let zongGeZiGao = this.wangGeDaXiao * this.geZiDaXiao;
+    let gaoCha = shengGao - zongGeZiGao;
+    this.pianYiY = this.dingBuLanGao + (gaoCha / 2);
+    
+    this.yanSeKu = [];
+    this.yanSeKu.push('#FF6B6B');
+    this.yanSeKu.push('#4ECDC4');
+    this.yanSeKu.push('#45B7D1');
+    this.yanSeKu.push('#96CEB4');
+    this.yanSeKu.push('#FFEAA7');
+    this.yanSeKu.push('#DDA0DD');
+    
+    this.wangGeShuJu = [];
+    this.deFen = 0;
+    this.guanKa = 1;
+    this.muBiaoFenShu = 100;
+    this.dangQianXuanZhong = null;
+    
+    this.chuShiHuaWangGe();
+    this.bangDingAnJian();
   }
 
-  initGrid() {
-    for (let i = 0; i < this.gridSize; i++) {
-      this.grid[i] = [];
-      for (let j = 0; j < this.gridSize; j++) {
-        this.grid[i][j] = Math.floor(Math.random() * this.colors.length);
+  chuShiHuaWangGe() {
+    this.wangGeShuJu = [];
+    let wg = this.wangGeDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      let hang = [];
+      for (let j = 0; j < wg; j++) {
+        let ysLen = this.yanSeKu.length;
+        let suiJi = Math.random();
+        let cheng = suiJi * ysLen;
+        let ysSuoYin = Math.floor(cheng);
+        hang.push(ysSuoYin);
       }
+      this.wangGeShuJu.push(hang);
     }
   }
 
-  bindEvents() {
-    const self = this;
-    tt.onTouchStart(function(touch) {
-      const x = touch.changedTouches[0].clientX;
-      const y = touch.changedTouches[0].clientY;
+  bangDingAnJian() {
+    let zz = this;
+    
+    tt.onTouchStart(function(chumo) {
+      let d = chumo.changedTouches[0];
+      let cx = d.clientX;
+      let cy = d.clientY;
       
-      // 返回按钮 - 使用与渲染相同的按钮位置
-      const btnY = self.statusBarHeight + self.navBarHeight / 2;
-      const btnRadius = 18;
-      const btnX = 30;
-      // 检测点击是否在返回按钮区域内
-      if (x >= btnX - btnRadius && x <= btnX + btnRadius &&
-          y >= btnY - btnRadius && y <= btnY + btnRadius) {
-        self.onBack();
+      let zt = zz.zhuangTaiLanGao;
+      let dh = zz.daoHangLanGao;
+      let banDh = dh / 2;
+      let anY = zt + banDh;
+      let anBj = 18;
+      let anX = 30;
+      
+      let p1 = false;
+      if (cx >= (anX - anBj)) {
+        if (cx <= (anX + anBj)) {
+          p1 = true;
+        }
+      }
+      
+      let p2 = false;
+      if (cy >= (anY - anBj)) {
+        if (cy <= (anY + anBj)) {
+          p2 = true;
+        }
+      }
+      
+      if (p1 === true && p2 === true) {
+        let fhFunc = zz.fanHuiHuiDiao;
+        if (fhFunc !== null && fhFunc !== undefined) {
+          fhFunc();
+        }
         return;
       }
       
-      // 点击方块
-      const col = Math.floor((x - self.offsetX) / self.cellSize);
-      const row = Math.floor((y - self.offsetY) / self.cellSize);
+      let xKou = cx - zz.pianYiX;
+      let yKou = cy - zz.pianYiY;
       
-      if (col >= 0 && col < self.gridSize && row >= 0 && row < self.gridSize) {
-        self.handleClick(row, col);
+      let lieF = xKou / zz.geZiDaXiao;
+      let hangF = yKou / zz.geZiDaXiao;
+      
+      let lieZ = Math.floor(lieF);
+      let hangZ = Math.floor(hangF);
+      
+      let wg = zz.wangGeDaXiao;
+      
+      let tj1 = false;
+      if (lieZ >= 0) {
+        if (lieZ < wg) {
+          tj1 = true;
+        }
+      }
+      
+      let tj2 = false;
+      if (hangZ >= 0) {
+        if (hangZ < wg) {
+          tj2 = true;
+        }
+      }
+      
+      if (tj1 === true && tj2 === true) {
+        zz.chuLiDianJi(hangZ, lieZ);
       }
     });
   }
 
-  handleClick(row, col) {
-    if (this.selected) {
-      const { row: sr, col: sc } = this.selected;
+  chuLiDianJi(hang, lie) {
+    let xuanZhong = this.dangQianXuanZhong;
+    let panDuan = false;
+    if (xuanZhong !== null && xuanZhong !== undefined) {
+      panDuan = true;
+    }
+    
+    if (panDuan === true) {
+      let jiuHang = xuanZhong.hang;
+      let jiuLie = xuanZhong.lie;
       
-      // 检查是否相邻
-      if (Math.abs(sr - row) + Math.abs(sc - col) === 1) {
-        // 交换
-        const temp = this.grid[sr][sc];
-        this.grid[sr][sc] = this.grid[row][col];
-        this.grid[row][col] = temp;
+      let hangCha = jiuHang - hang;
+      let lieCha = jiuLie - lie;
+      
+      let hangJueDui = hangCha;
+      if (hangJueDui < 0) {
+        hangJueDui = -hangJueDui;
+      }
+      
+      let lieJueDui = lieCha;
+      if (lieJueDui < 0) {
+        lieJueDui = -lieJueDui;
+      }
+      
+      let zongCha = hangJueDui + lieJueDui;
+      let xiangLin = false;
+      if (zongCha === 1) {
+        xiangLin = true;
+      }
+      
+      if (xiangLin === true) {
+        let linShi = this.wangGeShuJu[jiuHang][jiuLie];
+        this.wangGeShuJu[jiuHang][jiuLie] = this.wangGeShuJu[hang][lie];
+        this.wangGeShuJu[hang][lie] = linShi;
         
-        // 检查是否有匹配
-        if (this.checkMatch()) {
-          this.score += 10;
-          this.removeMatched();
-          this.fillEmpty();
+        let piPei = this.jianChaShiFouPiPei();
+        if (piPei === true) {
+          let jiuFen = this.deFen;
+          let xinFen = jiuFen + 10;
+          this.deFen = xinFen;
           
-          // 检查是否过关
-          if (this.score >= this.targetScore) {
-            this.levelUp();
+          this.xiaoChuPiPeiDe();
+          this.tianChongKongBai();
+          
+          let muBiao = this.muBiaoFenShu;
+          let dangQianFen = this.deFen;
+          let daBiao = false;
+          if (dangQianFen >= muBiao) {
+            daBiao = true;
+          }
+          
+          if (daBiao === true) {
+            this.shengJiGuanKa();
           }
         } else {
-          // 换回来
-          this.grid[row][col] = this.grid[sr][sc];
-          this.grid[sr][sc] = temp;
+          let huiFu1 = this.wangGeShuJu[hang][lie];
+          let huiFu2 = linShi;
+          this.wangGeShuJu[jiuHang][jiuLie] = huiFu1;
+          this.wangGeShuJu[hang][lie] = huiFu2;
         }
       }
-      this.selected = null;
+      this.dangQianXuanZhong = null;
     } else {
-      this.selected = { row, col };
+      let xinXuan = {};
+      xinXuan.hang = hang;
+      xinXuan.lie = lie;
+      this.dangQianXuanZhong = xinXuan;
     }
-    this.render();
+    
+    this.xuanRanHuaMian();
   }
 
-  checkMatch() {
-    // 简化：只要有相同颜色相邻就算匹配
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const color = this.grid[i][j];
-        if (color === -1) continue;
+  jianChaShiFouPiPei() {
+    let wg = this.wangGeDaXiao;
+    let shiFouZhaoDao = false;
+    
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let dangQianYs = this.wangGeShuJu[i][j];
         
-        // 检查右边
-        if (j < this.gridSize - 1 && this.grid[i][j + 1] === color) return true;
-        // 检查下边
-        if (i < this.gridSize - 1 && this.grid[i + 1][j] === color) return true;
+        let shiFouTiaoGuo = false;
+        if (dangQianYs === -1) {
+          shiFouTiaoGuo = true;
+        }
+        
+        if (shiFouTiaoGuo === false) {
+          let jianChaYou = false;
+          let youBianJie = wg - 1;
+          if (j < youBianJie) {
+            let youYs = this.wangGeShuJu[i][j + 1];
+            if (youYs === dangQianYs) {
+              jianChaYou = true;
+            }
+          }
+          
+          if (jianChaYou === true) {
+            return true;
+          }
+          
+          let jianChaXia = false;
+          let xiaBianJie = wg - 1;
+          if (i < xiaBianJie) {
+            let xiaYs = this.wangGeShuJu[i + 1][j];
+            if (xiaYs === dangQianYs) {
+              jianChaXia = true;
+            }
+          }
+          
+          if (jianChaXia === true) {
+            return true;
+          }
+        }
       }
     }
-    return false;
+    
+    return shiFouZhaoDao;
   }
 
-  removeMatched() {
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const color = this.grid[i][j];
-        if (color === -1) continue;
+  xiaoChuPiPeiDe() {
+    let wg = this.wangGeDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let dangQianYs = this.wangGeShuJu[i][j];
         
-        let matched = false;
-        if (j < this.gridSize - 1 && this.grid[i][j + 1] === color) matched = true;
-        if (i < this.gridSize - 1 && this.grid[i + 1][j] === color) matched = true;
-        if (j > 0 && this.grid[i][j - 1] === color) matched = true;
-        if (i > 0 && this.grid[i - 1][j] === color) matched = true;
+        let tg = false;
+        if (dangQianYs === -1) {
+          tg = true;
+        }
         
-        if (matched) {
-          this.grid[i][j] = -1;
+        if (tg === false) {
+          let pipei = false;
+          let bianjie1 = wg - 1;
+          
+          if (j < bianjie1) {
+            let youYs = this.wangGeShuJu[i][j + 1];
+            if (youYs === dangQianYs) {
+              pipei = true;
+            }
+          }
+          
+          if (i < bianjie1) {
+            let xiaYs = this.wangGeShuJu[i + 1][j];
+            if (xiaYs === dangQianYs) {
+              pipei = true;
+            }
+          }
+          
+          if (j > 0) {
+            let zuoYs = this.wangGeShuJu[i][j - 1];
+            if (zuoYs === dangQianYs) {
+              pipei = true;
+            }
+          }
+          
+          if (i > 0) {
+            let shangYs = this.wangGeShuJu[i - 1][j];
+            if (shangYs === dangQianYs) {
+              pipei = true;
+            }
+          }
+          
+          if (pipei === true) {
+            this.wangGeShuJu[i][j] = -1;
+          }
         }
       }
     }
   }
 
-  fillEmpty() {
-    for (let j = 0; j < this.gridSize; j++) {
-      let emptyCount = 0;
-      for (let i = this.gridSize - 1; i >= 0; i--) {
-        if (this.grid[i][j] === -1) {
-          emptyCount++;
-        } else if (emptyCount > 0) {
-          this.grid[i + emptyCount][j] = this.grid[i][j];
-          this.grid[i][j] = -1;
+  tianChongKongBai() {
+    let wg = this.wangGeDaXiao;
+    
+    for (let j = 0; j < wg; j++) {
+      let kongShu = 0;
+      let qiDian = wg - 1;
+      
+      for (let i = qiDian; i >= 0; i--) {
+        let zhi = this.wangGeShuJu[i][j];
+        
+        let shiFouKong = false;
+        if (zhi === -1) {
+          shiFouKong = true;
+        }
+        
+        if (shiFouKong === true) {
+          let jiuKong = kongShu;
+          kongShu = jiuKong + 1;
+        } else {
+          let youKong = false;
+          if (kongShu > 0) {
+            youKong = true;
+          }
+          
+          if (youKong === true) {
+            let muBiaoHang = i + kongShu;
+            this.wangGeShuJu[muBiaoHang][j] = zhi;
+            this.wangGeShuJu[i][j] = -1;
+          }
         }
       }
-      for (let i = 0; i < emptyCount; i++) {
-        this.grid[i][j] = Math.floor(Math.random() * this.colors.length);
+      
+      for (let k = 0; k < kongShu; k++) {
+        let ysLen = this.yanSeKu.length;
+        let suiJi = Math.random();
+        let cheng = suiJi * ysLen;
+        let xinYs = Math.floor(cheng);
+        this.wangGeShuJu[k][j] = xinYs;
       }
     }
   }
 
-  levelUp() {
-    this.level++;
-    this.targetScore = this.level * 100;
-    tt.showToast({ title: `第${this.level}关!`, icon: 'success' });
-    // 重新初始化棋盘
-    this.initGrid();
-    this.selected = null;
+  shengJiGuanKa() {
+    let jiuGk = this.guanKa;
+    let xinGk = jiuGk + 1;
+    this.guanKa = xinGk;
+    
+    let xinMb = this.guanKa * 100;
+    this.muBiaoFenShu = xinMb;
+    
+    let ts = {};
+    let wz = "GuanKa" + this.guanKa;
+    ts.title = wz;
+    ts.icon = 'success';
+    tt.showToast(ts);
+    
+    this.chuShiHuaWangGe();
+    this.dangQianXuanZhong = null;
   }
 
-  render() {
-    const { ctx, canvas } = this;
+  xuanRanHuaMian() {
+    let b = this.huaBi;
+    let hb = this.huaBu;
     
-    // 背景
-    ctx.fillStyle = '#1A1A2E';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let bgys = '#1A1A2E';
+    b.fillStyle = bgys;
     
-    // 返回按钮 - 放在导航栏左侧，与平台按钮同一排
-    const btnY = this.statusBarHeight + this.navBarHeight / 2;
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.beginPath();
-    ctx.arc(30, btnY, 18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#FFF';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('←', 30, btnY);
+    let hk = hb.width;
+    let hg = hb.height;
+    b.fillRect(0, 0, hk, hg);
     
-    // 显示关卡和分数
-    ctx.fillStyle = '#FFF';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`第${this.level}关`, canvas.width / 2 - 60, btnY);
-    ctx.fillText(`分数: ${this.score}`, canvas.width / 2 + 60, btnY);
+    let ztl = this.zhuangTaiLanGao;
+    let dhl = this.daoHangLanGao;
+    let bdh = dhl / 2;
+    let any = ztl + bdh;
     
-    // 进度条
-    const progressWidth = 100;
-    const progressHeight = 6;
-    const progressX = canvas.width / 2 - progressWidth / 2;
-    const progressY = btnY + 15;
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.fillRect(progressX, progressY, progressWidth, progressHeight);
-    ctx.fillStyle = '#4ECDC4';
-    ctx.fillRect(progressX, progressY, progressWidth * Math.min(1, this.score / this.targetScore), progressHeight);
+    let hbs = 'rgba(255,255,255,0.2)';
+    b.fillStyle = hbs;
     
-    // 绘制方块
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const x = this.offsetX + j * this.cellSize;
-        const y = this.offsetY + i * this.cellSize;
+    b.beginPath();
+    let anx = 30;
+    let anbj = 18;
+    b.arc(anx, any, anbj, 0, Math.PI * 2);
+    b.fill();
+    
+    let zys = '#FFF';
+    b.fillStyle = zys;
+    
+    let ztd = '14px Arial';
+    b.font = ztd;
+    
+    let dq = 'center';
+    b.textAlign = dq;
+    
+    let jx = 'middle';
+    b.textBaseline = jx;
+    
+    let fh = 'FH';
+    b.fillText(fh, anx, any);
+    
+    let jz = 'bold 16px Arial';
+    b.font = jz;
+    
+    let banK = hk / 2;
+    
+    let gk = this.guanKa;
+    let gkStr = "GK:" + gk;
+    let gkx = banK - 60;
+    b.fillText(gkStr, gkx, any);
+    
+    let fs = this.deFen;
+    let fsStr = "FS:" + fs;
+    let fsx = banK + 60;
+    b.fillText(fsStr, fsx, any);
+    
+    let jdKuan = 100;
+    let jdGao = 6;
+    let jdX = banK - (jdKuan / 2);
+    let jdY = any + 15;
+    
+    let jdBg = 'rgba(255,255,255,0.2)';
+    b.fillStyle = jdBg;
+    b.fillRect(jdX, jdY, jdKuan, jdGao);
+    
+    let jdYs = '#4ECDC4';
+    b.fillStyle = jdYs;
+    
+    let df = this.deFen;
+    let mb = this.muBiaoFenShu;
+    let biLi = df / mb;
+    
+    let zuiZhongBiLi = biLi;
+    if (biLi > 1) {
+      zuiZhongBiLi = 1;
+    }
+    
+    let xianShiK = jdKuan * zuiZhongBiLi;
+    b.fillRect(jdX, jdY, xianShiK, jdGao);
+    
+    let wg = this.wangGeDaXiao;
+    let px = this.pianYiX;
+    let py = this.pianYiY;
+    let gz = this.geZiDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let zhi = this.wangGeShuJu[i][j];
         
-        if (this.grid[i][j] === -1) continue;
-        
-        // 选中效果
-        if (this.selected && this.selected.row === i && this.selected.col === j) {
-          ctx.fillStyle = 'rgba(255,255,255,0.3)';
-          ctx.fillRect(x - 3, y - 3, this.cellSize + 6, this.cellSize + 6);
+        let t1 = false;
+        if (zhi === -1) {
+          t1 = true;
         }
         
-        // 方块
-        ctx.fillStyle = this.colors[this.grid[i][j]];
-        this.roundRect(ctx, x + 2, y + 2, this.cellSize - 4, this.cellSize - 4, 8);
-        ctx.fill();
+        if (t1 === false) {
+          let gx = px + (j * gz);
+          let gy = py + (i * gz);
+          
+          let xz = this.dangQianXuanZhong;
+          let pdXz = false;
+          if (xz !== null && xz !== undefined) {
+            let k1 = false;
+            if (xz.hang === i) {
+              k1 = true;
+            }
+            let k2 = false;
+            if (xz.lie === j) {
+              k2 = true;
+            }
+            if (k1 === true && k2 === true) {
+              pdXz = true;
+            }
+          }
+          
+          if (pdXz === true) {
+            let xzYs = 'rgba(255,255,255,0.3)';
+            b.fillStyle = xzYs;
+            let xzX = gx - 3;
+            let xzY = gy - 3;
+            let xzK = gz + 6;
+            let xzG = gz + 6;
+            b.fillRect(xzX, xzY, xzK, xzG);
+          }
+          
+          let fqYs = this.yanSeKu[zhi];
+          b.fillStyle = fqYs;
+          
+          let fx = gx + 2;
+          let fy = gy + 2;
+          let fk = gz - 4;
+          let fg = gz - 4;
+          let fbj = 8;
+          
+          this.huaYuanJiaoJuXing(b, fx, fy, fk, fg, fbj);
+          b.fill();
+        }
       }
     }
   }
 
-  roundRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
+  huaYuanJiaoJuXing(huaBu, x, y, k, g, bj) {
+    huaBu.beginPath();
+    let qdX = x + bj;
+    let qdY = y;
+    huaBu.moveTo(qdX, qdY);
+    
+    let d1X = x + k - bj;
+    let d1Y = y;
+    huaBu.lineTo(d1X, d1Y);
+    
+    let kZ1X = x + k;
+    let kZ1Y = y;
+    let jD1X = x + k;
+    let jD1Y = y + bj;
+    huaBu.quadraticCurveTo(kZ1X, kZ1Y, jD1X, jD1Y);
+    
+    let d2X = x + k;
+    let d2Y = y + g - bj;
+    huaBu.lineTo(d2X, d2Y);
+    
+    let kZ2X = x + k;
+    let kZ2Y = y + g;
+    let jD2X = x + k - bj;
+    let jD2Y = y + g;
+    huaBu.quadraticCurveTo(kZ2X, kZ2Y, jD2X, jD2Y);
+    
+    let d3X = x + bj;
+    let d3Y = y + g;
+    huaBu.lineTo(d3X, d3Y);
+    
+    let kZ3X = x;
+    let kZ3Y = y + g;
+    let jD3X = x;
+    let jD3Y = y + g - bj;
+    huaBu.quadraticCurveTo(kZ3X, kZ3Y, jD3X, jD3Y);
+    
+    let d4X = x;
+    let d4Y = y + bj;
+    huaBu.lineTo(d4X, d4Y);
+    
+    let kZ4X = x;
+    let kZ4Y = y;
+    let jD4X = x + bj;
+    let jD4Y = y;
+    huaBu.quadraticCurveTo(kZ4X, kZ4Y, jD4X, jD4Y);
+    
+    huaBu.closePath();
   }
 }
 
-module.exports = FangkuaiGame;
+module.exports = FangKuaiXiaoXiaoLe;

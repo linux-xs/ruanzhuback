@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"byglg/internal/database"
 	"byglg/internal/model"
@@ -9,71 +10,162 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserHandler 用户相关处理器
-type UserHandler struct{}
+type YongHuChuLiQi struct{}
 
-// NewUserHandler 创建用户处理器实例
-func NewUserHandler() *UserHandler {
-	return &UserHandler{}
+func GouJianYongHuChuLiQi() *YongHuChuLiQi {
+	var chuLiQiShiLi *YongHuChuLiQi
+	chuLiQiShiLi = &YongHuChuLiQi{}
+	return chuLiQiShiLi
 }
 
-// GetUserInfo 获取用户信息
-func (h *UserHandler) GetUserInfo(c *gin.Context) {
-	userID := c.Param("id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+func (h *YongHuChuLiQi) HuoQuYongHuXinXiJieKou(shangXiaWen *gin.Context) {
+	var canShuBianHao string
+	canShuBianHao = shangXiaWen.Param("bianhao")
+
+	var shiFouWeiKong bool
+	shiFouWeiKong = false
+	if canShuBianHao == "" {
+		shiFouWeiKong = true
+	}
+
+	if shiFouWeiKong == true {
+		var zhuangTaiMa int
+		zhuangTaiMa = http.StatusBadRequest
+		var cuoWuDuiXiang gin.H
+		cuoWuDuiXiang = gin.H{"cuo_wu_xin_xi": "yong_hu_bian_hao_bu_neng_wei_kong"}
+		shangXiaWen.JSON(zhuangTaiMa, cuoWuDuiXiang)
 		return
 	}
 
-	var user model.UserInfo
-	if err := database.DB.Where("user_id = ?", userID).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	var yongHuShuJu model.YongHuJiBenXinXi
+	var chaXunTiaoJian string
+	chaXunTiaoJian = "yong_hu_bian_hao = ?"
+
+	var chaXunJieGuo error
+	chaXunJieGuo = database.DB.Where(chaXunTiaoJian, canShuBianHao).First(&yongHuShuJu).Error
+
+	var shiFouCunZai bool
+	shiFouCunZai = true
+	if chaXunJieGuo != nil {
+		shiFouCunZai = false
+	}
+
+	if shiFouCunZai == false {
+		var weiZhaoDaoMa int
+		weiZhaoDaoMa = http.StatusNotFound
+		var tiShi gin.H
+		tiShi = gin.H{"cuo_wu_xin_xi": "mei_zhao_dao_zhe_ge_yong_hu"}
+		shangXiaWen.JSON(weiZhaoDaoMa, tiShi)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": user})
+	var chengGongMa int
+	chengGongMa = http.StatusOK
+	var fanHuiShuJu gin.H
+	fanHuiShuJu = gin.H{"jie_guo_shu_ju": yongHuShuJu}
+	shangXiaWen.JSON(chengGongMa, fanHuiShuJu)
 }
 
-// CreateOrUpdateUser 创建或更新用户信息
-func (h *UserHandler) CreateOrUpdateUser(c *gin.Context) {
-	var req model.UserInfo
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (h *YongHuChuLiQi) BaoCunYongHuXinXiJieKou(shangXiaWen *gin.Context) {
+	var qingQiuTi model.YongHuJiBenXinXi
+
+	var jieXiCuoWu error
+	jieXiCuoWu = shangXiaWen.ShouldBindJSON(&qingQiuTi)
+
+	var shiFouJieXiChengGong bool
+	shiFouJieXiChengGong = true
+	if jieXiCuoWu != nil {
+		shiFouJieXiChengGong = false
+	}
+
+	if shiFouJieXiChengGong == false {
+		var ma int
+		ma = http.StatusBadRequest
+		var cuoWu gin.H
+		cuoWu = gin.H{"cuo_wu_xin_xi": jieXiCuoWu.Error()}
+		shangXiaWen.JSON(ma, cuoWu)
 		return
 	}
 
-	// 检查用户是否存在
-	var existingUser model.UserInfo
-	result := database.DB.Where("user_id = ?", req.UserID).First(&existingUser)
+	var laoDeShuJu model.YongHuJiBenXinXi
+	var tiaoJian string
+	tiaoJian = "yong_hu_bian_hao = ?"
+	var yongHuId string
+	yongHuId = qingQiuTi.YongHuBianHao
 
-	if result.Error != nil {
-		// 创建新用户
-		if err := database.DB.Create(&req).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+	var chaxun error
+	chaxun = database.DB.Where(tiaoJian, yongHuId).First(&laoDeShuJu).Error
+
+	if chaxun != nil {
+		var xinzengCuoWu error
+		xinzengCuoWu = database.DB.Create(&qingQiuTi).Error
+
+		if xinzengCuoWu != nil {
+			var neibuCuowu int
+			neibuCuowu = http.StatusInternalServerError
+			var cuowuTiShi gin.H
+			cuowuTiShi = gin.H{"cuo_wu_xin_xi": "chuang_jian_shi_bai"}
+			shangXiaWen.JSON(neibuCuowu, cuowuTiShi)
 			return
 		}
-		c.JSON(http.StatusCreated, gin.H{"data": req, "message": "user created"})
+
+		var chuangJianCg int
+		chuangJianCg = http.StatusCreated
+		var cgXinXi gin.H
+		cgXinXi = gin.H{"jie_guo_shu_ju": qingQiuTi, "ti_shi": "chuang_jian_cheng_gong"}
+		shangXiaWen.JSON(chuangJianCg, cgXinXi)
 	} else {
-		// 更新用户信息
-		database.DB.Model(&existingUser).Updates(req)
-		c.JSON(http.StatusOK, gin.H{"data": existingUser, "message": "user updated"})
+		database.DB.Model(&laoDeShuJu).Updates(qingQiuTi)
+
+		var gengXinCg int
+		gengXinCg = http.StatusOK
+		var gxXinXi gin.H
+		gxXinXi = gin.H{"jie_guo_shu_ju": laoDeShuJu, "ti_shi": "geng_xin_cheng_gong"}
+		shangXiaWen.JSON(gengXinCg, gxXinXi)
 	}
 }
 
-// UpdateUserLoginTime 更新用户最后登录时间
-func (h *UserHandler) UpdateUserLoginTime(c *gin.Context) {
-	userID := c.Param("id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+func (h *YongHuChuLiQi) GengXinDengLuShiJianJieKou(shangXiaWen *gin.Context) {
+	var bianHaoZiFu string
+	bianHaoZiFu = shangXiaWen.Param("bianhao")
+
+	if bianHaoZiFu == "" {
+		var zt int
+		zt = http.StatusBadRequest
+		var tz gin.H
+		tz = gin.H{"cuo_wu_xin_xi": "yong_hu_bian_hao_bu_neng_wei_kong"}
+		shangXiaWen.JSON(zt, tz)
 		return
 	}
 
-	if err := database.DB.Model(&model.UserInfo{}).
-		Where("user_id = ?", userID).
-		Update("last_login_time", database.DB.Now()).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update login time"})
+	var muBiaoYongHu model.YongHuJiBenXinXi
+	var sqlTiaoJian string
+	sqlTiaoJian = "yong_hu_bian_hao = ?"
+
+	var zhaoDaoLema error
+	zhaoDaoLema = database.DB.Where(sqlTiaoJian, bianHaoZiFu).First(&muBiaoYongHu).Error
+
+	if zhaoDaoLema != nil {
+		var bcz int
+		bcz = http.StatusNotFound
+		var bczTs gin.H
+		bczTs = gin.H{"cuo_wu_xin_xi": "mei_zhao_dao_zhe_ge_yong_hu"}
+		shangXiaWen.JSON(bcz, bczTs)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "login time updated"})
+	var xianzai time.Time
+	xianzai = time.Now()
+
+	var gengXinZiDuan map[string]interface{}
+	gengXinZiDuan = make(map[string]interface{})
+	gengXinZiDuan["zui_hou_deng_lu_shi_jian"] = xianzai
+
+	database.DB.Model(&muBiaoYongHu).Updates(gengXinZiDuan)
+
+	var zhengChang int
+	zhengChang = http.StatusOK
+	var fh gin.H
+	fh = gin.H{"ti_shi": "geng_xin_shi_jian_cheng_gong"}
+	shangXiaWen.JSON(zhengChang, fh)
 }

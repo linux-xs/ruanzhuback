@@ -1,171 +1,461 @@
-/**
- * 图返原游戏
- * 点击翻转方块，让所有方块变成同一颜色
- */
-
-class FanhuiGame {
-  constructor(canvas, ctx, systemInfo, onBack) {
-    this.canvas = canvas;
-    this.ctx = ctx;
-    this.systemInfo = systemInfo;
-    this.onBack = onBack;
+class FanHuiYouXi {
+  constructor(hb, hbCtx, sbxx, fh) {
+    let hbu = hb;
+    this.huaBu = hbu;
     
-    this.gridSize = 5;
-    this.statusBarHeight = this.systemInfo.statusBarHeight || 20;
-    this.navBarHeight = 44;
-    this.topBarHeight = this.statusBarHeight + this.navBarHeight;
+    let hbi = hbCtx;
+    this.huaBi = hbi;
     
-    const bottomPadding = 40;
-    const availableHeight = this.systemInfo.windowHeight - this.topBarHeight - bottomPadding;
-    const availableWidth = this.systemInfo.windowWidth - 20;
-    this.cellSize = Math.min(availableWidth / this.gridSize, availableHeight / this.gridSize);
-    this.offsetX = (this.systemInfo.windowWidth - this.gridSize * this.cellSize) / 2;
-    this.offsetY = this.topBarHeight + (availableHeight - this.gridSize * this.cellSize) / 2;
+    let shebei = sbxx;
+    this.sheBeiXinXi = shebei;
     
-    this.colors = ['#BB8FCE', '#FFFFFF'];
-    this.grid = [];
-    this.moves = 0;
-    this.level = 1;
-    this.score = 0;
-    this.bestMoves = 999;
+    let fanhui = fh;
+    this.fanHuiHuiDiao = fanhui;
     
-    this.initGrid();
-    this.bindEvents();
-  }
-
-  initGrid() {
-    for (let i = 0; i < this.gridSize; i++) {
-      this.grid[i] = [];
-      for (let j = 0; j < this.gridSize; j++) {
-        this.grid[i][j] = Math.random() > 0.5 ? 1 : 0;
-      }
+    let wg = 5;
+    this.wangGeDaXiao = wg;
+    
+    let sbg = this.sheBeiXinXi.statusBarHeight;
+    let pds = false;
+    if (sbg !== null && sbg !== undefined) {
+      pds = true;
     }
+    
+    if (pds === true) {
+      this.zhuangTaiLanGao = sbg;
+    } else {
+      this.zhuangTaiLanGao = 20;
+    }
+    
+    let dhg = 44;
+    this.daoHangLanGao = dhg;
+    
+    let zzt = this.zhuangTaiLanGao;
+    let zdh = this.daoHangLanGao;
+    let zdb = zzt + zdh;
+    this.dingBuLanGao = zdb;
+    
+    let db = 40;
+    let wgGao = this.sheBeiXinXi.windowHeight;
+    let shengGao = wgGao - this.dingBuLanGao - db;
+    
+    let wgKuan = this.sheBeiXinXi.windowWidth;
+    let shengKuan = wgKuan - 20;
+    
+    let jiSuanKuan = shengKuan / this.wangGeDaXiao;
+    let jiSuanGao = shengGao / this.wangGeDaXiao;
+    
+    let zuiZhongGeZi = jiSuanKuan;
+    if (jiSuanGao < jiSuanKuan) {
+      zuiZhongGeZi = jiSuanGao;
+    }
+    this.geZiDaXiao = zuiZhongGeZi;
+    
+    let zongGeZiKuan = this.wangGeDaXiao * this.geZiDaXiao;
+    let kuanCha = this.sheBeiXinXi.windowWidth - zongGeZiKuan;
+    this.pianYiX = kuanCha / 2;
+    
+    let zongGeZiGao = this.wangGeDaXiao * this.geZiDaXiao;
+    let gaoCha = shengGao - zongGeZiGao;
+    this.pianYiY = this.dingBuLanGao + (gaoCha / 2);
+    
+    this.yanSeKu = [];
+    this.yanSeKu.push('#BB8FCE');
+    this.yanSeKu.push('#FFFFFF');
+    
+    this.wangGeShuJu = [];
+    this.yiDongBuShu = 0;
+    this.guanKa = 1;
+    this.deFen = 0;
+    this.zuiJiaBuShu = 999;
+    
+    this.chuShiHuaWangGe();
+    this.bangDingAnJian();
   }
 
-  bindEvents() {
-    const self = this;
-    tt.onTouchStart(function(touch) {
-      const x = touch.changedTouches[0].clientX;
-      const y = touch.changedTouches[0].clientY;
+  chuShiHuaWangGe() {
+    this.wangGeShuJu = [];
+    let wg = this.wangGeDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      let hang = [];
+      for (let j = 0; j < wg; j++) {
+        let suiJi = Math.random();
+        let shiFouLing = false;
+        if (suiJi > 0.5) {
+          shiFouLing = true;
+        }
+        
+        if (shiFouLing === true) {
+          hang.push(0);
+        } else {
+          hang.push(1);
+        }
+      }
+      this.wangGeShuJu.push(hang);
+    }
+    
+    let shiFouYiJingHaoLe = this.jianChaShiFouTongGuan();
+    if (shiFouYiJingHaoLe === true) {
+      let lingX = 0;
+      let lingY = 0;
+      this.fanZhuanYanSe(lingX, lingY);
+    }
+    
+    let chuBu = 0;
+    this.yiDongBuShu = chuBu;
+  }
+
+  bangDingAnJian() {
+    let zz = this;
+    
+    tt.onTouchStart(function(chumo) {
+      let d = chumo.changedTouches[0];
+      let cx = d.clientX;
+      let cy = d.clientY;
       
-      // 返回按钮 - 使用与渲染相同的按钮位置
-      const btnY = self.statusBarHeight + self.navBarHeight / 2;
-      const btnRadius = 18;
-      const btnX = 30;
-      if (x >= btnX - btnRadius && x <= btnX + btnRadius &&
-          y >= btnY - btnRadius && y <= btnY + btnRadius) {
-        self.onBack();
+      let zt = zz.zhuangTaiLanGao;
+      let dh = zz.daoHangLanGao;
+      let banDh = dh / 2;
+      let anY = zt + banDh;
+      let anBj = 18;
+      let anX = 30;
+      
+      let p1 = false;
+      if (cx >= (anX - anBj)) {
+        if (cx <= (anX + anBj)) {
+          p1 = true;
+        }
+      }
+      
+      let p2 = false;
+      if (cy >= (anY - anBj)) {
+        if (cy <= (anY + anBj)) {
+          p2 = true;
+        }
+      }
+      
+      if (p1 === true && p2 === true) {
+        let fhFunc = zz.fanHuiHuiDiao;
+        if (fhFunc !== null && fhFunc !== undefined) {
+          fhFunc();
+        }
         return;
       }
       
-      const col = Math.floor((x - self.offsetX) / self.cellSize);
-      const row = Math.floor((y - self.offsetY) / self.cellSize);
+      let xKou = cx - zz.pianYiX;
+      let yKou = cy - zz.pianYiY;
       
-      if (col >= 0 && col < self.gridSize && row >= 0 && row < self.gridSize) {
-        self.handleClick(row, col);
+      let lieF = xKou / zz.geZiDaXiao;
+      let hangF = yKou / zz.geZiDaXiao;
+      
+      let lieZ = Math.floor(lieF);
+      let hangZ = Math.floor(hangF);
+      
+      let wg = zz.wangGeDaXiao;
+      
+      let tj1 = false;
+      if (lieZ >= 0) {
+        if (lieZ < wg) {
+          tj1 = true;
+        }
+      }
+      
+      let tj2 = false;
+      if (hangZ >= 0) {
+        if (hangZ < wg) {
+          tj2 = true;
+        }
+      }
+      
+      if (tj1 === true && tj2 === true) {
+        zz.chuLiDianJi(hangZ, lieZ);
       }
     });
   }
 
-  handleClick(row, col) {
-    // 翻转点击的方块和相邻方块
-    this.flip(row, col);
-    if (row > 0) this.flip(row - 1, col);
-    if (row < this.gridSize - 1) this.flip(row + 1, col);
-    if (col > 0) this.flip(row, col - 1);
-    if (col < this.gridSize - 1) this.flip(row, col + 1);
+  chuLiDianJi(hang, lie) {
+    this.fanZhuanYanSe(hang, lie);
     
-    this.moves++;
-    this.render();
-    
-    if (this.checkWin()) {
-      this.score += Math.max(10, 100 - this.moves);
-      if (this.moves < this.bestMoves) {
-        this.bestMoves = this.moves;
-      }
-      setTimeout(() => {
-        tt.showToast({ title: `恭喜通关! 用了${this.moves}步`, icon: 'success' });
-        this.levelUp();
-      }, 100);
+    let shang = hang - 1;
+    let pdShang = false;
+    if (shang >= 0) {
+      pdShang = true;
     }
-  }
-
-  levelUp() {
-    this.level++;
-    tt.showToast({ title: `第${this.level}关!`, icon: 'success' });
-    this.initGrid();
-    this.moves = 0;
-  }
-
-  flip(row, col) {
-    this.grid[row][col] = this.grid[row][col] === 0 ? 1 : 0;
-  }
-
-  checkWin() {
-    const first = this.grid[0][0];
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        if (this.grid[i][j] !== first) return false;
-      }
+    if (pdShang === true) {
+      this.fanZhuanYanSe(shang, lie);
     }
-    return true;
+    
+    let wg = this.wangGeDaXiao;
+    
+    let xia = hang + 1;
+    let pdXia = false;
+    if (xia < wg) {
+      pdXia = true;
+    }
+    if (pdXia === true) {
+      this.fanZhuanYanSe(xia, lie);
+    }
+    
+    let zuo = lie - 1;
+    let pdZuo = false;
+    if (zuo >= 0) {
+      pdZuo = true;
+    }
+    if (pdZuo === true) {
+      this.fanZhuanYanSe(hang, zuo);
+    }
+    
+    let you = lie + 1;
+    let pdYou = false;
+    if (you < wg) {
+      pdYou = true;
+    }
+    if (pdYou === true) {
+      this.fanZhuanYanSe(hang, you);
+    }
+    
+    let jiuBu = this.yiDongBuShu;
+    let xinBu = jiuBu + 1;
+    this.yiDongBuShu = xinBu;
+    
+    let shiFouYingLe = this.jianChaShiFouTongGuan();
+    if (shiFouYingLe === true) {
+      this.chuLiTongGuan();
+    }
+    
+    this.xuanRanHuaMian();
   }
 
-  render() {
-    const { ctx, canvas } = this;
+  fanZhuanYanSe(h, l) {
+    let jiu = this.wangGeShuJu[h][l];
+    let xin = 0;
+    let pd = false;
+    if (jiu === 0) {
+      pd = true;
+    }
     
-    ctx.fillStyle = '#FFEBEE';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (pd === true) {
+      xin = 1;
+    } else {
+      xin = 0;
+    }
+    this.wangGeShuJu[h][l] = xin;
+  }
+
+  jianChaShiFouTongGuan() {
+    let wg = this.wangGeDaXiao;
+    let diYiGe = this.wangGeShuJu[0][0];
+    let tongGuanBiaoZhi = true;
     
-    // 返回按钮 - 放在导航栏左侧，与平台按钮同一排
-    const btnY = this.statusBarHeight + this.navBarHeight / 2;
-    ctx.fillStyle = 'rgba(0,0,0,0.1)';
-    ctx.beginPath();
-    ctx.arc(30, btnY, 18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#333';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('←', 30, btnY);
-    
-    // 显示关卡、步数和分数
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`第${this.level}关`, canvas.width / 2 - 80, btnY);
-    ctx.fillText(`步数: ${this.moves}`, canvas.width / 2, btnY);
-    ctx.fillText(`分数: ${this.score}`, canvas.width / 2 + 80, btnY);
-    
-    // 绘制方块
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const x = this.offsetX + j * this.cellSize;
-        const y = this.offsetY + i * this.cellSize;
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let dangQian = this.wangGeShuJu[i][j];
+        let shiFouXiangDeng = false;
         
-        ctx.fillStyle = this.colors[this.grid[i][j]];
-        ctx.strokeStyle = '#BB8FCE';
-        ctx.lineWidth = 2;
-        this.roundRect(ctx, x + 2, y + 2, this.cellSize - 4, this.cellSize - 4, 8);
-        ctx.fill();
-        ctx.stroke();
+        if (dangQian !== diYiGe) {
+          shiFouXiangDeng = true;
+        }
+        
+        if (shiFouXiangDeng === true) {
+          tongGuanBiaoZhi = false;
+          break;
+        }
+      }
+      
+      if (tongGuanBiaoZhi === false) {
+        break;
+      }
+    }
+    
+    return tongGuanBiaoZhi;
+  }
+
+  chuLiTongGuan() {
+    let bs = this.yiDongBuShu;
+    let jc = 100 - bs;
+    
+    let xjc = jc;
+    if (xjc < 10) {
+      xjc = 10;
+    }
+    
+    let df = this.deFen;
+    let xf = df + xjc;
+    this.deFen = xf;
+    
+    let ts = {};
+    let wenben = "TG!";
+    ts.title = wenben;
+    ts.icon = 'success';
+    
+    let zz = this;
+    let yanchi = 100;
+    setTimeout(function() {
+      tt.showToast(ts);
+      zz.shengJiGuanKa();
+    }, yanchi);
+  }
+
+  shengJiGuanKa() {
+    let jk = this.guanKa;
+    let xk = jk + 1;
+    this.guanKa = xk;
+    
+    let jb = this.yiDongBuShu;
+    let zj = this.zuiJiaBuShu;
+    let pd = false;
+    if (jb < zj) {
+      pd = true;
+    }
+    
+    if (pd === true) {
+      this.zuiJiaBuShu = jb;
+    }
+    
+    this.chuShiHuaWangGe();
+    this.xuanRanHuaMian();
+  }
+
+  xuanRanHuaMian() {
+    let b = this.huaBi;
+    let hb = this.huaBu;
+    
+    let bgys = '#F5F5F5';
+    b.fillStyle = bgys;
+    
+    let hk = hb.width;
+    let hg = hb.height;
+    b.fillRect(0, 0, hk, hg);
+    
+    let ztl = this.zhuangTaiLanGao;
+    let dhl = this.daoHangLanGao;
+    let bdh = dhl / 2;
+    let any = ztl + bdh;
+    
+    let hbs = 'rgba(0,0,0,0.1)';
+    b.fillStyle = hbs;
+    
+    b.beginPath();
+    let anx = 30;
+    let anbj = 18;
+    b.arc(anx, any, anbj, 0, Math.PI * 2);
+    b.fill();
+    
+    let zys = '#333';
+    b.fillStyle = zys;
+    
+    let ztd = '14px Arial';
+    b.font = ztd;
+    
+    let dq = 'center';
+    b.textAlign = dq;
+    
+    let jx = 'middle';
+    b.textBaseline = jx;
+    
+    let fh = 'FH';
+    b.fillText(fh, anx, any);
+    
+    let jz = 'bold 14px Arial';
+    b.font = jz;
+    
+    let banK = hk / 2;
+    
+    let gk = this.guanKa;
+    let gkStr = "GK:" + gk;
+    let gkx = banK - 80;
+    b.fillText(gkStr, gkx, any);
+    
+    let bushu = this.yiDongBuShu;
+    let bsStr = "BS:" + bushu;
+    let bsx = banK;
+    b.fillText(bsStr, bsx, any);
+    
+    let fs = this.deFen;
+    let fsStr = "FS:" + fs;
+    let fsx = banK + 80;
+    b.fillText(fsStr, fsx, any);
+    
+    let wg = this.wangGeDaXiao;
+    let px = this.pianYiX;
+    let py = this.pianYiY;
+    let gz = this.geZiDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let zhi = this.wangGeShuJu[i][j];
+        
+        let dys = this.yanSeKu[zhi];
+        b.fillStyle = dys;
+        
+        let bys = '#BB8FCE';
+        b.strokeStyle = bys;
+        
+        let xk = 2;
+        b.lineWidth = xk;
+        
+        let fx = px + (j * gz) + 2;
+        let fy = py + (i * gz) + 2;
+        let fk = gz - 4;
+        let fg = gz - 4;
+        let fbj = 8;
+        
+        this.huaYuanJiaoJuXing(b, fx, fy, fk, fg, fbj);
+        b.fill();
+        b.stroke();
       }
     }
   }
 
-  roundRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
+  huaYuanJiaoJuXing(huaBu, x, y, k, g, bj) {
+    huaBu.beginPath();
+    let qdX = x + bj;
+    let qdY = y;
+    huaBu.moveTo(qdX, qdY);
+    
+    let d1X = x + k - bj;
+    let d1Y = y;
+    huaBu.lineTo(d1X, d1Y);
+    
+    let kZ1X = x + k;
+    let kZ1Y = y;
+    let jD1X = x + k;
+    let jD1Y = y + bj;
+    huaBu.quadraticCurveTo(kZ1X, kZ1Y, jD1X, jD1Y);
+    
+    let d2X = x + k;
+    let d2Y = y + g - bj;
+    huaBu.lineTo(d2X, d2Y);
+    
+    let kZ2X = x + k;
+    let kZ2Y = y + g;
+    let jD2X = x + k - bj;
+    let jD2Y = y + g;
+    huaBu.quadraticCurveTo(kZ2X, kZ2Y, jD2X, jD2Y);
+    
+    let d3X = x + bj;
+    let d3Y = y + g;
+    huaBu.lineTo(d3X, d3Y);
+    
+    let kZ3X = x;
+    let kZ3Y = y + g;
+    let jD3X = x;
+    let jD3Y = y + g - bj;
+    huaBu.quadraticCurveTo(kZ3X, kZ3Y, jD3X, jD3Y);
+    
+    let d4X = x;
+    let d4Y = y + bj;
+    huaBu.lineTo(d4X, d4Y);
+    
+    let kZ4X = x;
+    let kZ4Y = y;
+    let jD4X = x + bj;
+    let jD4Y = y;
+    huaBu.quadraticCurveTo(kZ4X, kZ4Y, jD4X, jD4Y);
+    
+    huaBu.closePath();
   }
 }
 
-module.exports = FanhuiGame;
+module.exports = FanHuiYouXi;

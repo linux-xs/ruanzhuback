@@ -1,258 +1,366 @@
-/**
- * 用户管理模块
- * 处理用户信息、体力系统、免广告次数等
- */
+let bendiCunChu = require('./storage.js');
+let peiZhiWenJian = require('./config.js');
+let tiLiSheZhi = peiZhiWenJian.ENERGY_CONFIG;
 
-const storage = require('./storage.js');
-const { ENERGY_CONFIG, STORAGE_KEYS } = require('./config.js');
-
-class UserManager {
+class YongHuZhuangTaiGuanLi {
   constructor() {
-    this.userInfo = null;
-    this.energy = null;
-    this.freeAdQuota = {};
+    this.yongHuShuJuDuiXiang = null;
+    this.tiLiShuJuDuiXiang = null;
+    this.mianGgEdushuju = {};
+    this.shiFouYiJingChuShiHua = false;
   }
 
-  /**
-   * 初始化用户数据
-   * @param {string} openid - 用户openid
-   * @returns {object} 用户数据
-   */
-  initUser(openid) {
-    // 检查是否已有用户数据
-    this.userInfo = storage.getUserInfo();
+  chuShiHuaWanJia(weiXinOpenId) {
+    let cCunDeXinXi = bendiCunChu.huoQuYongHuXinXi();
+    this.yongHuShuJuDuiXiang = cCunDeXinXi;
     
-    if (!this.userInfo) {
-      // 新用户初始化
-      this.userInfo = {
-        userId: openid || 'guest_' + Date.now(),
-        nickName: '新玩家',
-        avatarUrl: '',
-        createTime: Date.now(),
-        lastLoginTime: Date.now(),
-        totalGamesPlayed: 0,
-        totalAdsWatched: 0,
-        isNewUser: true
-      };
-      storage.setUserInfo(this.userInfo);
+    let shiFouCunZai = false;
+    if (this.yongHuShuJuDuiXiang !== null && this.yongHuShuJuDuiXiang !== undefined) {
+      shiFouCunZai = true;
+    }
+
+    if (shiFouCunZai === false) {
+      let xinWanJiaObj = {};
+      let biaoShi = "";
+      if (weiXinOpenId !== null && weiXinOpenId !== undefined && weiXinOpenId !== "") {
+        biaoShi = weiXinOpenId;
+      } else {
+        let shiJianWei = Date.now();
+        biaoShi = "youke_" + shiJianWei;
+      }
       
-      // 初始化体力
-      this.initEnergy();
+      xinWanJiaObj.yongHuBianHao = biaoShi;
+      xinWanJiaObj.niCheng = "XinWanJia";
+      xinWanJiaObj.touXiangLianJie = "";
       
-      // 初始化免广告次数
-      this.initFreeAdQuota();
+      let chuangJianShiJian = Date.now();
+      xinWanJiaObj.zhuCeShiJian = chuangJianShiJian;
+      xinWanJiaObj.shangCiDengLu = chuangJianShiJian;
+      
+      xinWanJiaObj.zongYouXiCiShu = 0;
+      xinWanJiaObj.zongKanGgCiShu = 0;
+      xinWanJiaObj.shiFouXinRen = true;
+      
+      this.yongHuShuJuDuiXiang = xinWanJiaObj;
+      bendiCunChu.sheZhiYongHuXinXi(this.yongHuShuJuDuiXiang);
+      
+      this.chuShiHuaTiLiZhi();
+      this.chuShiHuaMianGg();
     } else {
-      // 老用户更新登录时间
-      this.userInfo.lastLoginTime = Date.now();
-      this.userInfo.isNewUser = false;
-      storage.setUserInfo(this.userInfo);
+      let laoWanJia = this.yongHuShuJuDuiXiang;
+      let xianzaiHaoMiao = Date.now();
+      laoWanJia.shangCiDengLu = xianzaiHaoMiao;
+      laoWanJia.shiFouXinRen = false;
       
-      // 加载体力数据
-      this.energy = storage.getEnergy();
-      this.recoverEnergy();
+      bendiCunChu.sheZhiYongHuXinXi(laoWanJia);
       
-      // 加载免广告次数
-      this.freeAdQuota = storage.getFreeAdQuota();
-      this.checkAndResetFreeAdQuota();
-    }
-    
-    return this.getUserData();
-  }
-
-  /**
-   * 初始化体力
-   */
-  initEnergy() {
-    this.energy = {
-      current: ENERGY_CONFIG.max,
-      max: ENERGY_CONFIG.max,
-      lastRecoverTime: Date.now(),
-      recoverInterval: ENERGY_CONFIG.recoverInterval,
-      recoverAmount: ENERGY_CONFIG.recoverAmount
-    };
-    storage.setEnergy(this.energy);
-  }
-
-  /**
-   * 恢复体力
-   * @returns {object} 恢复后的体力数据
-   */
-  recoverEnergy() {
-    if (!this.energy) return this.energy;
-    
-    const now = Date.now();
-    const lastRecover = this.energy.lastRecoverTime;
-    const interval = this.energy.recoverInterval * 1000;
-    const elapsed = now - lastRecover;
-    
-    // 计算恢复次数
-    const recoverTimes = Math.floor(elapsed / interval);
-    
-    if (recoverTimes > 0) {
-      const recoverAmount = recoverTimes * this.energy.recoverAmount;
-      const newEnergy = Math.min(
-        this.energy.current + recoverAmount,
-        this.energy.max
-      );
+      let cunChuDeTiLi = bendiCunChu.huoQuTiLiShuJu();
+      this.tiLiShuJuDuiXiang = cunChuDeTiLi;
+      this.huiFuWanJiaTiLi();
       
-      this.energy.current = newEnergy;
-      this.energy.lastRecoverTime = lastRecover + recoverTimes * interval;
-      storage.setEnergy(this.energy);
+      let cunChuDeMianGg = bendiCunChu.huoQuMianGgCiShu();
+      this.mianGgEdushuju = cunChuDeMianGg;
+      this.jianYanBingZhongZhiMianGg();
     }
     
-    return this.energy;
+    let zuiZhongShuJu = this.huoQuWanJiaQuanBuShuJu();
+    this.shiFouYiJingChuShiHua = true;
+    return zuiZhongShuJu;
   }
 
-  /**
-   * 消耗体力
-   * @param {number} amount - 消耗数量
-   * @returns {boolean} 是否成功
-   */
-  consumeEnergy(amount) {
-    if (!this.energy || this.energy.current < amount) {
-      return false;
+  chuShiHuaTiLiZhi() {
+    let xinTiLi = {};
+    let manZhi = tiLiSheZhi.max;
+    
+    xinTiLi.dangQianZhi = manZhi;
+    xinTiLi.zuiDaZhi = manZhi;
+    
+    let xianzai = Date.now();
+    xinTiLi.shangCiHuiFu = xianzai;
+    
+    let jianGe = tiLiSheZhi.recoverInterval;
+    xinTiLi.huiFuJianGeMiao = jianGe;
+    
+    let shuliang = tiLiSheZhi.recoverAmount;
+    xinTiLi.meiCiHuiFuDian = shuliang;
+    
+    this.tiLiShuJuDuiXiang = xinTiLi;
+    bendiCunChu.sheZhiTiLiShuJu(this.tiLiShuJuDuiXiang);
+  }
+
+  huiFuWanJiaTiLi() {
+    let muQianTiLi = this.tiLiShuJuDuiXiang;
+    if (muQianTiLi === null || muQianTiLi === undefined) {
+      return null;
     }
     
-    this.energy.current -= amount;
-    storage.setEnergy(this.energy);
-    return true;
-  }
-
-  /**
-   * 获取体力恢复倒计时
-   * @returns {string} 倒计时字符串 (mm:ss)
-   */
-  getEnergyRecoverTimer() {
-    if (!this.energy) return '00:00';
+    let dangQianShike = Date.now();
+    let shangCiJiLu = muQianTiLi.shangCiHuiFu;
     
-    if (this.energy.current >= this.energy.max) {
-      return '已满';
+    let jianGeHaoMiao = muQianTiLi.huiFuJianGeMiao * 1000;
+    let liuShiShiJian = dangQianShike - shangCiJiLu;
+    
+    let zhengshuCiShu = liuShiShiJian / jianGeHaoMiao;
+    let qvZhengCiShu = Math.floor(zhengshuCiShu);
+    
+    let shiFouXuYaoHuiFu = false;
+    if (qvZhengCiShu > 0) {
+      shiFouXuYaoHuiFu = true;
     }
     
-    const now = Date.now();
-    const lastRecover = this.energy.lastRecoverTime;
-    const interval = this.energy.recoverInterval * 1000;
-    const nextRecover = lastRecover + interval;
-    const remaining = Math.max(0, nextRecover - now);
-    
-    const minutes = Math.floor(remaining / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }
-
-  /**
-   * 初始化免广告次数
-   */
-  initFreeAdQuota() {
-    const { GAMES_CONFIG } = require('./config.js');
-    const today = new Date().toDateString();
-    
-    GAMES_CONFIG.forEach(game => {
-      if (game.adType === 'free' || game.adType === 'video') {
-        this.freeAdQuota[game.id] = {
-          freeCount: 0,
-          maxFreeCount: game.adCount ? game.adCount.max : 2,
-          resetDate: today
-        };
+    if (shiFouXuYaoHuiFu === true) {
+      let zongHuiFuLiang = qvZhengCiShu * muQianTiLi.meiCiHuiFuDian;
+      let yuJiXinTiLi = muQianTiLi.dangQianZhi + zongHuiFuLiang;
+      
+      let shiJiXinTiLi = yuJiXinTiLi;
+      let shangXian = muQianTiLi.zuiDaZhi;
+      if (yuJiXinTiLi > shangXian) {
+        shiJiXinTiLi = shangXian;
       }
-    });
+      
+      muQianTiLi.dangQianZhi = shiJiXinTiLi;
+      let xinDeJiLuShiJian = shangCiJiLu + (qvZhengCiShu * jianGeHaoMiao);
+      muQianTiLi.shangCiHuiFu = xinDeJiLuShiJian;
+      
+      this.tiLiShuJuDuiXiang = muQianTiLi;
+      bendiCunChu.sheZhiTiLiShuJu(this.tiLiShuJuDuiXiang);
+    }
     
-    storage.setFreeAdQuota(this.freeAdQuota);
+    return this.tiLiShuJuDuiXiang;
   }
 
-  /**
-   * 检查并重置免广告次数
-   */
-  checkAndResetFreeAdQuota() {
-    const today = new Date().toDateString();
-    let needUpdate = false;
+  xiaoHaoWanJiaTiLi(xuYaoKouChu) {
+    let t = this.tiLiShuJuDuiXiang;
+    let k = xuYaoKouChu;
     
-    for (const gameId in this.freeAdQuota) {
-      if (this.freeAdQuota[gameId].resetDate !== today) {
-        this.freeAdQuota[gameId].freeCount = 0;
-        this.freeAdQuota[gameId].resetDate = today;
-        needUpdate = true;
+    let nengFouKouChu = true;
+    if (t === null || t === undefined) {
+      nengFouKouChu = false;
+    } else {
+      if (t.dangQianZhi < k) {
+        nengFouKouChu = false;
       }
     }
     
-    if (needUpdate) {
-      storage.setFreeAdQuota(this.freeAdQuota);
-    }
-  }
-
-  /**
-   * 使用免广告次数
-   * @param {string} gameId - 游戏ID
-   * @returns {boolean} 是否成功
-   */
-  useFreeAd(gameId) {
-    if (!this.freeAdQuota[gameId]) return false;
-    
-    const quota = this.freeAdQuota[gameId];
-    if (quota.freeCount >= quota.maxFreeCount) {
+    if (nengFouKouChu === false) {
       return false;
     }
     
-    quota.freeCount++;
-    storage.updateFreeAdQuota(gameId, quota);
+    t.dangQianZhi = t.dangQianZhi - k;
+    this.tiLiShuJuDuiXiang = t;
+    bendiCunChu.sheZhiTiLiShuJu(this.tiLiShuJuDuiXiang);
     return true;
   }
 
-  /**
-   * 获取免广告剩余次数
-   * @param {string} gameId - 游戏ID
-   * @returns {object} 免广告次数信息
-   */
-  getFreeAdRemaining(gameId) {
-    if (!this.freeAdQuota[gameId]) {
-      return { remaining: 0, max: 0 };
+  huoQuHuiFuDaoJiShiWenBen() {
+    let t = this.tiLiShuJuDuiXiang;
+    if (t === null || t === undefined) {
+      return "00:00";
     }
     
-    const quota = this.freeAdQuota[gameId];
-    return {
-      remaining: quota.maxFreeCount - quota.freeCount,
-      max: quota.maxFreeCount,
-      used: quota.freeCount
-    };
+    let manTiLi = false;
+    if (t.dangQianZhi >= t.zuiDaZhi) {
+      manTiLi = true;
+    }
+    
+    if (manTiLi === true) {
+      return "yi man";
+    }
+    
+    let xianzai = Date.now();
+    let shangCi = t.shangCiHuiFu;
+    let jianGe = t.huiFuJianGeMiao * 1000;
+    
+    let xiaCiShiJian = shangCi + jianGe;
+    let shengYuHaoMiao = xiaCiShiJian - xianzai;
+    
+    if (shengYuHaoMiao < 0) {
+      shengYuHaoMiao = 0;
+    }
+    
+    let fenzhongZheng = shengYuHaoMiao / 60000;
+    let fenZhong = Math.floor(fenzhongZheng);
+    
+    let yuShuHaoMiao = shengYuHaoMiao % 60000;
+    let miaoZheng = yuShuHaoMiao / 1000;
+    let miao = Math.floor(miaoZheng);
+    
+    let fenZiFu = String(fenZhong);
+    if (fenZiFu.length < 2) {
+      fenZiFu = "0" + fenZiFu;
+    }
+    
+    let miaoZiFu = String(miao);
+    if (miaoZiFu.length < 2) {
+      miaoZiFu = "0" + miaoZiFu;
+    }
+    
+    let zuiZhongWenBen = fenZiFu + ":" + miaoZiFu;
+    return zuiZhongWenBen;
   }
 
-  /**
-   * 更新游戏进度
-   * @param {string} gameId - 游戏ID
-   * @param {object} progress - 进度数据
-   */
-  updateGameProgress(gameId, progress) {
-    storage.updateGameProgress(gameId, progress);
+  chuShiHuaMianGg() {
+    let neibuPeiZhi = require('./config.js');
+    let youXiLieBiao = neibuPeiZhi.GAMES_CONFIG;
     
-    // 更新总游戏次数
-    if (this.userInfo) {
-      this.userInfo.totalGamesPlayed++;
-      storage.setUserInfo(this.userInfo);
+    let riQiDuiXiang = new Date();
+    let jinTianZiFu = riQiDuiXiang.toDateString();
+    
+    let changDu = youXiLieBiao.length;
+    for (let idx = 0; idx < changDu; idx++) {
+      let danGeYouXi = youXiLieBiao[idx];
+      let xingZhi = danGeYouXi.adType;
+      
+      let shiFouBaoHan = false;
+      if (xingZhi === "free") {
+        shiFouBaoHan = true;
+      } else if (xingZhi === "video") {
+        shiFouBaoHan = true;
+      }
+      
+      if (shiFouBaoHan === true) {
+        let cunZhi = {};
+        cunZhi.yiYongCiShu = 0;
+        
+        let zuiDaZhi = 2;
+        let cishuPeiZhi = danGeYouXi.adCount;
+        if (cishuPeiZhi !== null && cishuPeiZhi !== undefined) {
+          let maxZhi = cishuPeiZhi.max;
+          if (maxZhi !== null && maxZhi !== undefined) {
+            zuiDaZhi = maxZhi;
+          }
+        }
+        
+        cunZhi.zuiDaMianFui = zuiDaZhi;
+        cunZhi.jiLuRiQi = jinTianZiFu;
+        
+        let yxId = danGeYouXi.id;
+        this.mianGgEdushuju[yxId] = cunZhi;
+      }
+    }
+    
+    bendiCunChu.sheZhiMianGgCiShu(this.mianGgEdushuju);
+  }
+
+  jianYanBingZhongZhiMianGg() {
+    let riQiObj = new Date();
+    let dangQianRiQi = riQiObj.toDateString();
+    let shiFouGengXin = false;
+    
+    let jianJiHe = Object.keys(this.mianGgEdushuju);
+    for (let k = 0; k < jianJiHe.length; k++) {
+      let jianMing = jianJiHe[k];
+      let shuJu = this.mianGgEdushuju[jianMing];
+      
+      let jiluDeRiQi = shuJu.jiLuRiQi;
+      if (jiluDeRiQi !== dangQianRiQi) {
+        shuJu.yiYongCiShu = 0;
+        shuJu.jiLuRiQi = dangQianRiQi;
+        shiFouGengXin = true;
+      }
+    }
+    
+    if (shiFouGengXin === true) {
+      bendiCunChu.sheZhiMianGgCiShu(this.mianGgEdushuju);
     }
   }
 
-  /**
-   * 获取用户数据
-   * @returns {object} 用户数据
-   */
-  getUserData() {
-    return {
-      userInfo: this.userInfo,
-      energy: this.energy,
-      freeAdQuota: this.freeAdQuota
-    };
+  xiaoHaoMianGgCiShu(youXiBianHao) {
+    let edushuju = this.mianGgEdushuju[youXiBianHao];
+    let nengFouXiaoHao = true;
+    
+    if (edushuju === null || edushuju === undefined) {
+      nengFouXiaoHao = false;
+    }
+    
+    if (nengFouXiaoHao === true) {
+      let yiYong = edushuju.yiYongCiShu;
+      let zongLiang = edushuju.zuiDaMianFui;
+      if (yiYong >= zongLiang) {
+        nengFouXiaoHao = false;
+      }
+    }
+    
+    if (nengFouXiaoHao === false) {
+      return false;
+    }
+    
+    edushuju.yiYongCiShu = edushuju.yiYongCiShu + 1;
+    bendiCunChu.gengXinMianGgCiShu(youXiBianHao, edushuju);
+    return true;
   }
 
-  /**
-   * 更新用户信息
-   * @param {object} info - 用户信息
-   */
-  updateUserInfo(info) {
-    this.userInfo = { ...this.userInfo, ...info };
-    storage.setUserInfo(this.userInfo);
+  huoQuMianGgShengYu(youXiBianHao) {
+    let edushuju = this.mianGgEdushuju[youXiBianHao];
+    let fanHuiZhuangTai = {};
+    
+    if (edushuju === null || edushuju === undefined) {
+      fanHuiZhuangTai.shengYuLiang = 0;
+      fanHuiZhuangTai.zongShu = 0;
+      fanHuiZhuangTai.yiJingYong = 0;
+      return fanHuiZhuangTai;
+    }
+    
+    let zong = edushuju.zuiDaMianFui;
+    let yong = edushuju.yiYongCiShu;
+    let sheng = zong - yong;
+    
+    fanHuiZhuangTai.shengYuLiang = sheng;
+    fanHuiZhuangTai.zongShu = zong;
+    fanHuiZhuangTai.yiJingYong = yong;
+    
+    return fanHuiZhuangTai;
+  }
+
+  gengXinWanJiaYouXiJinDu(youXiBianHao, jinDuXinXi) {
+    bendiCunChu.gengXinYouXiJinDu(youXiBianHao, jinDuXinXi);
+    
+    let wanJiaXinXi = this.yongHuShuJuDuiXiang;
+    let panDuan = false;
+    if (wanJiaXinXi !== null && wanJiaXinXi !== undefined) {
+      panDuan = true;
+    }
+    
+    if (panDuan === true) {
+      let jiuCiShu = wanJiaXinXi.zongYouXiCiShu;
+      let xinCiShu = jiuCiShu + 1;
+      wanJiaXinXi.zongYouXiCiShu = xinCiShu;
+      bendiCunChu.sheZhiYongHuXinXi(wanJiaXinXi);
+    }
+  }
+
+  huoQuWanJiaQuanBuShuJu() {
+    let zhengHeDuiXiang = {};
+    zhengHeDuiXiang.wanJiaJiBenXinXi = this.yongHuShuJuDuiXiang;
+    zhengHeDuiXiang.wanJiaTiLiShuJu = this.tiLiShuJuDuiXiang;
+    zhengHeDuiXiang.wanJiaMianGgShuJu = this.mianGgEdushuju;
+    return zhengHeDuiXiang;
+  }
+
+  gengXinWanJiaXinXi(gengXinNeiRong) {
+    let jiuDe = this.yongHuShuJuDuiXiang;
+    let xinZhuangTai = {};
+    
+    if (jiuDe !== null && jiuDe !== undefined) {
+      let keys1 = Object.keys(jiuDe);
+      for (let i = 0; i < keys1.length; i++) {
+        let k1 = keys1[i];
+        xinZhuangTai[k1] = jiuDe[k1];
+      }
+    }
+    
+    if (gengXinNeiRong !== null && gengXinNeiRong !== undefined) {
+      let keys2 = Object.keys(gengXinNeiRong);
+      for (let j = 0; j < keys2.length; j++) {
+        let k2 = keys2[j];
+        xinZhuangTai[k2] = gengXinNeiRong[k2];
+      }
+    }
+    
+    this.yongHuShuJuDuiXiang = xinZhuangTai;
+    bendiCunChu.sheZhiYongHuXinXi(this.yongHuShuJuDuiXiang);
   }
 }
 
-// 导出单例
-module.exports = new UserManager();
+let quanJuYongHuGuanLi = new YongHuZhuangTaiGuanLi();
+module.exports = quanJuYongHuGuanLi;

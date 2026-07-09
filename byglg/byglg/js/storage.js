@@ -1,166 +1,291 @@
-/**
- * 存储管理模块
- * 封装本地存储的读写操作
- */
+let peiZhiXinXi = require('./config.js');
+let cunChuJianBiao = peiZhiXinXi.STORAGE_KEYS;
 
-const { STORAGE_KEYS } = require('./config.js');
-
-class StorageManager {
+class BendiCunChuGuanLiZhe {
   constructor() {
-    this.prefix = 'douyin_game_';
+    let qz = "dy_yx_cz_";
+    this.qianZhuiMing = qz;
+    this.chuShiHuaZhuangTai = true;
+    this.cuoWuJiLu = [];
   }
 
-  /**
-   * 获取存储数据
-   * @param {string} key - 存储键名
-   * @param {*} defaultValue - 默认值
-   * @returns {*} 存储的数据
-   */
-  get(key, defaultValue = null) {
-    try {
-      const fullKey = this.prefix + key;
-      const data = tt.getStorageSync(fullKey);
-      return data ? JSON.parse(data) : defaultValue;
-    } catch (e) {
-      console.error('Storage get error:', e);
-      return defaultValue;
+  huoQuShuJu(jianMing, moRenDeZhi) {
+    let zuiZhongMoRenZhi = null;
+    let shiFouCunZaiMoRen = false;
+    
+    if (moRenDeZhi !== null && moRenDeZhi !== undefined) {
+      zuiZhongMoRenZhi = moRenDeZhi;
+      shiFouCunZaiMoRen = true;
     }
-  }
 
-  /**
-   * 设置存储数据
-   * @param {string} key - 存储键名
-   * @param {*} value - 要存储的数据
-   * @returns {boolean} 是否成功
-   */
-  set(key, value) {
+    let fanHuiDeJieGuo = null;
+    
     try {
-      const fullKey = this.prefix + key;
-      tt.setStorageSync(fullKey, JSON.stringify(value));
-      return true;
-    } catch (e) {
-      console.error('Storage set error:', e);
-      return false;
+      let qianZhuiZiFuChuan = this.qianZhuiMing;
+      let wanZhengDeJianMing = qianZhuiZiFuChuan + jianMing;
+      let pingTaiDuQuShuJu = tt.getStorageSync(wanZhengDeJianMing);
+      
+      let panDuanKongZhi = false;
+      if (pingTaiDuQuShuJu === "") {
+        panDuanKongZhi = true;
+      } else if (pingTaiDuQuShuJu === null) {
+        panDuanKongZhi = true;
+      } else if (pingTaiDuQuShuJu === undefined) {
+        panDuanKongZhi = true;
+      }
+
+      if (panDuanKongZhi === false) {
+        let jieXiHouDeShuJu = JSON.parse(pingTaiDuQuShuJu);
+        fanHuiDeJieGuo = jieXiHouDeShuJu;
+      } else {
+        if (shiFouCunZaiMoRen === true) {
+          fanHuiDeJieGuo = zuiZhongMoRenZhi;
+        } else {
+          fanHuiDeJieGuo = null;
+        }
+      }
+    } catch (yiChangCuoWu) {
+      let jiluCuoWu = yiChangCuoWu;
+      this.cuoWuJiLu.push(jiluCuoWu);
+      if (shiFouCunZaiMoRen === true) {
+        fanHuiDeJieGuo = zuiZhongMoRenZhi;
+      }
     }
+    
+    return fanHuiDeJieGuo;
   }
 
-  /**
-   * 删除存储数据
-   * @param {string} key - 存储键名
-   * @returns {boolean} 是否成功
-   */
-  remove(key) {
+  cunRuShuJu(jianMing, xuYaoCunDeZhi) {
+    let zhiXingJieGuo = false;
     try {
-      const fullKey = this.prefix + key;
-      tt.removeStorageSync(fullKey);
-      return true;
-    } catch (e) {
-      console.error('Storage remove error:', e);
-      return false;
+      let qianZhui = this.qianZhuiMing;
+      let zhengZhengDeJian = qianZhui + jianMing;
+      let zhuanHuanZiFuChuan = JSON.stringify(xuYaoCunDeZhi);
+      tt.setStorageSync(zhengZhengDeJian, zhuanHuanZiFuChuan);
+      zhiXingJieGuo = true;
+    } catch (cunChuCuoWu) {
+      let cuoWuDuiXiang = cunChuCuoWu;
+      this.cuoWuJiLu.push(cuoWuDuiXiang);
+      zhiXingJieGuo = false;
     }
+    return zhiXingJieGuo;
   }
 
-  /**
-   * 清空所有存储
-   * @returns {boolean} 是否成功
-   */
-  clear() {
+  shanChuShuJu(jianMing) {
+    let shanChuZhuangTai = false;
+    try {
+      let qianZhui = this.qianZhuiMing;
+      let muBiaoJian = qianZhui + jianMing;
+      tt.removeStorageSync(muBiaoJian);
+      shanChuZhuangTai = true;
+    } catch (shanChuYiChang) {
+      shanChuZhuangTai = false;
+    }
+    return shanChuZhuangTai;
+  }
+
+  qingKongSuoYouCunChu() {
+    let qingKongJieGuo = false;
     try {
       tt.clearStorageSync();
-      return true;
-    } catch (e) {
-      console.error('Storage clear error:', e);
-      return false;
+      qingKongJieGuo = true;
+    } catch (qingKongCuoWu) {
+      qingKongJieGuo = false;
     }
+    return qingKongJieGuo;
   }
 
-  // 用户信息相关方法
-  getUserInfo() {
-    return this.get(STORAGE_KEYS.USER_INFO);
+  huoQuYongHuXinXi() {
+    let jian = cunChuJianBiao.USER_INFO;
+    let jieGuo = this.huoQuShuJu(jian, null);
+    return jieGuo;
   }
 
-  setUserInfo(userInfo) {
-    return this.set(STORAGE_KEYS.USER_INFO, userInfo);
+  sheZhiYongHuXinXi(xinXiDuiXiang) {
+    let jian = cunChuJianBiao.USER_INFO;
+    let chuanRuZhi = xinXiDuiXiang;
+    let jieGuo = this.cunRuShuJu(jian, chuanRuZhi);
+    return jieGuo;
   }
 
-  // 体力相关方法
-  getEnergy() {
-    return this.get(STORAGE_KEYS.ENERGY);
+  huoQuTiLiShuJu() {
+    let jian = cunChuJianBiao.ENERGY;
+    let jieGuo = this.huoQuShuJu(jian, null);
+    return jieGuo;
   }
 
-  setEnergy(energy) {
-    return this.set(STORAGE_KEYS.ENERGY, energy);
+  sheZhiTiLiShuJu(tiLiDuiXiang) {
+    let jian = cunChuJianBiao.ENERGY;
+    let zhi = tiLiDuiXiang;
+    let jieGuo = this.cunRuShuJu(jian, zhi);
+    return jieGuo;
   }
 
-  // 游戏进度相关方法
-  getGameProgress() {
-    return this.get(STORAGE_KEYS.GAME_PROGRESS, {});
+  huoQuYouXiJinDu() {
+    let jian = cunChuJianBiao.GAME_PROGRESS;
+    let moRenKongDuiXiang = {};
+    let jieGuo = this.huoQuShuJu(jian, moRenKongDuiXiang);
+    return jieGuo;
   }
 
-  setGameProgress(progress) {
-    return this.set(STORAGE_KEYS.GAME_PROGRESS, progress);
+  sheZhiYouXiJinDu(jinDuDuiXiang) {
+    let jian = cunChuJianBiao.GAME_PROGRESS;
+    let zhi = jinDuDuiXiang;
+    let jieGuo = this.cunRuShuJu(jian, zhi);
+    return jieGuo;
   }
 
-  getGameProgressById(gameId) {
-    const allProgress = this.getGameProgress();
-    return allProgress[gameId] || null;
+  huoQuDanGeYouXiJinDu(youXiBianHao) {
+    let suoYouJinDu = this.huoQuYouXiJinDu();
+    let panDuan = false;
+    let muBiaoJinDu = null;
+    
+    if (suoYouJinDu !== null && suoYouJinDu !== undefined) {
+      panDuan = true;
+    }
+    
+    if (panDuan === true) {
+      let zhaoDaoDe = suoYouJinDu[youXiBianHao];
+      if (zhaoDaoDe !== null && zhaoDaoDe !== undefined) {
+        muBiaoJinDu = zhaoDaoDe;
+      } else {
+        muBiaoJinDu = null;
+      }
+    }
+    
+    return muBiaoJinDu;
   }
 
-  updateGameProgress(gameId, progress) {
-    const allProgress = this.getGameProgress();
-    allProgress[gameId] = { ...allProgress[gameId], ...progress, lastPlayTime: Date.now() };
-    return this.setGameProgress(allProgress);
+  gengXinYouXiJinDu(youXiBianHao, xinDeJinDu) {
+    let suoYouDe = this.huoQuYouXiJinDu();
+    let dangQianDe = suoYouDe[youXiBianHao];
+    
+    let tiHuanDuiXiang = {};
+    if (dangQianDe !== null && dangQianDe !== undefined) {
+      let jiuDeShuXing = Object.keys(dangQianDe);
+      for (let i = 0; i < jiuDeShuXing.length; i++) {
+        let sx = jiuDeShuXing[i];
+        tiHuanDuiXiang[sx] = dangQianDe[sx];
+      }
+    }
+    
+    if (xinDeJinDu !== null && xinDeJinDu !== undefined) {
+      let xinDeShuXing = Object.keys(xinDeJinDu);
+      for (let j = 0; j < xinDeShuXing.length; j++) {
+        let nsx = xinDeShuXing[j];
+        tiHuanDuiXiang[nsx] = xinDeJinDu[nsx];
+      }
+    }
+    
+    let dangQianHaoMiao = Date.now();
+    tiHuanDuiXiang.shangCiWanHaoMiao = dangQianHaoMiao;
+    
+    suoYouDe[youXiBianHao] = tiHuanDuiXiang;
+    let zuiZhongJieGuo = this.sheZhiYouXiJinDu(suoYouDe);
+    return zuiZhongJieGuo;
   }
 
-  // 免广告次数相关方法
-  getFreeAdQuota() {
-    return this.get(STORAGE_KEYS.FREE_AD_QUOTA, {});
+  huoQuMianGgCiShu() {
+    let jian = cunChuJianBiao.FREE_AD_QUOTA;
+    let kong = {};
+    let jieGuo = this.huoQuShuJu(jian, kong);
+    return jieGuo;
   }
 
-  setFreeAdQuota(quota) {
-    return this.set(STORAGE_KEYS.FREE_AD_QUOTA, quota);
+  sheZhiMianGgCiShu(ciShuDuiXiang) {
+    let jian = cunChuJianBiao.FREE_AD_QUOTA;
+    let zhi = ciShuDuiXiang;
+    let jieGuo = this.cunRuShuJu(jian, zhi);
+    return jieGuo;
   }
 
-  getFreeAdQuotaById(gameId) {
-    const allQuota = this.getFreeAdQuota();
-    return allQuota[gameId] || null;
+  huoQuDanGeMianGg(youXiBianHao) {
+    let quanBuCiShu = this.huoQuMianGgCiShu();
+    let fanHuiZhi = null;
+    let cunZai = quanBuCiShu[youXiBianHao];
+    if (cunZai !== null && cunZai !== undefined) {
+      fanHuiZhi = cunZai;
+    }
+    return fanHuiZhi;
   }
 
-  updateFreeAdQuota(gameId, quota) {
-    const allQuota = this.getFreeAdQuota();
-    allQuota[gameId] = { ...allQuota[gameId], ...quota };
-    return this.setFreeAdQuota(allQuota);
+  gengXinMianGgCiShu(youXiBianHao, xinDeCiShu) {
+    let quanBu = this.huoQuMianGgCiShu();
+    let jiuDe = quanBu[youXiBianHao];
+    let zuZhuang = {};
+    
+    if (jiuDe !== null && jiuDe !== undefined) {
+      let keys1 = Object.keys(jiuDe);
+      for (let m = 0; m < keys1.length; m++) {
+        let k1 = keys1[m];
+        zuZhuang[k1] = jiuDe[k1];
+      }
+    }
+    
+    if (xinDeCiShu !== null && xinDeCiShu !== undefined) {
+      let keys2 = Object.keys(xinDeCiShu);
+      for (let n = 0; n < keys2.length; n++) {
+        let k2 = keys2[n];
+        zuZhuang[k2] = xinDeCiShu[k2];
+      }
+    }
+    
+    quanBu[youXiBianHao] = zuZhuang;
+    let zhuangTai = this.sheZhiMianGgCiShu(quanBu);
+    return zhuangTai;
   }
 
-  // 广告记录相关方法
-  getAdRecords() {
-    return this.get(STORAGE_KEYS.AD_RECORDS, []);
+  huoQuGgJiLu() {
+    let jian = cunChuJianBiao.AD_RECORDS;
+    let kongShuZu = [];
+    let jieGuo = this.huoQuShuJu(jian, kongShuZu);
+    return jieGuo;
   }
 
-  setAdRecords(records) {
-    return this.set(STORAGE_KEYS.AD_RECORDS, records);
+  sheZhiGgJiLu(jiLuShuZu) {
+    let jian = cunChuJianBiao.AD_RECORDS;
+    let zhi = jiLuShuZu;
+    let jieGuo = this.cunRuShuJu(jian, zhi);
+    return jieGuo;
   }
 
-  addAdRecord(record) {
-    const records = this.getAdRecords();
-    records.push({ ...record, watchTime: Date.now() });
-    return this.setAdRecords(records);
+  zengJiaGgJiLu(danTiaoJiLu) {
+    let jiuJiLu = this.huoQuGgJiLu();
+    let xinBaoCun = {};
+    
+    let xiangMuJi = Object.keys(danTiaoJiLu);
+    for (let i = 0; i < xiangMuJi.length; i++) {
+      let x = xiangMuJi[i];
+      xinBaoCun[x] = danTiaoJiLu[x];
+    }
+    
+    let xianzaiShiJian = Date.now();
+    xinBaoCun.kanGuoShiJian = xianzaiShiJian;
+    
+    jiuJiLu.push(xinBaoCun);
+    let baoCunZhuangTai = this.sheZhiGgJiLu(jiuJiLu);
+    return baoCunZhuangTai;
   }
 
-  // 设置相关方法
-  getSettings() {
-    return this.get(STORAGE_KEYS.SETTINGS, {
-      musicEnabled: true,
-      soundEnabled: true,
-      vibrationEnabled: true,
-      notificationEnabled: true
-    });
+  huoQuPeiZhiSheZhi() {
+    let jian = cunChuJianBiao.SETTINGS;
+    let moRenSheZhi = {};
+    moRenSheZhi.yinYueKaiQi = true;
+    moRenSheZhi.yinXiaoKaiQi = true;
+    moRenSheZhi.zhenDongKaiQi = true;
+    moRenSheZhi.tongZhiKaiQi = true;
+    
+    let jieGuo = this.huoQuShuJu(jian, moRenSheZhi);
+    return jieGuo;
   }
 
-  setSettings(settings) {
-    return this.set(STORAGE_KEYS.SETTINGS, settings);
+  sheZhiPeiZhiSheZhi(sheZhiDuiXiang) {
+    let jian = cunChuJianBiao.SETTINGS;
+    let zhi = sheZhiDuiXiang;
+    let jieGuo = this.cunRuShuJu(jian, zhi);
+    return jieGuo;
   }
 }
 
-// 导出单例
-module.exports = new StorageManager();
+let quanJuCunChuGuanLi = new BendiCunChuGuanLiZhe();
+module.exports = quanJuCunChuGuanLi;

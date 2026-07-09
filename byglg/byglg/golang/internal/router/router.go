@@ -6,55 +6,113 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter 设置路由
-func SetupRouter() *gin.Engine {
-	r := gin.Default()
+func GouJianQuanJuLuYou() *gin.Engine {
+	var luYouYinQing *gin.Engine
+	luYouYinQing = gin.Default()
 
-	// 健康检查
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+	var jianKangLuJing string
+	jianKangLuJing = "/jiankang_jiancha"
+
+	luYouYinQing.GET(jianKangLuJing, func(shangXiaWen *gin.Context) {
+		var zhuangTaiMa int
+		zhuangTaiMa = 200
+
+		var fanHuiShuJu gin.H
+		fanHuiShuJu = gin.H{"zhuang_tai": "zheng_chang"}
+
+		shangXiaWen.JSON(zhuangTaiMa, fanHuiShuJu)
 	})
 
-	// 初始化处理器
-	userHandler := handler.NewUserHandler()
-	energyHandler := handler.NewEnergyHandler()
-	gameHandler := handler.NewGameHandler()
-	adHandler := handler.NewAdHandler()
+	var yongHuChuliDuiXiang *handler.YongHuChuLiQi
+	yongHuChuliDuiXiang = handler.GouJianYongHuChuLiQi()
 
-	// API v1 路由组
-	v1 := r.Group("/api/v1")
+	var tiLiChuliDuiXiang *handler.TiLiChuLiQi
+	tiLiChuliDuiXiang = handler.GouJianTiLiChuLiQi()
+
+	var youXiChuliDuiXiang *handler.YouXiChuLiQi
+	youXiChuliDuiXiang = handler.GouJianYouXiChuLiQi()
+
+	var guangGaoChuliDuiXiang *handler.GuangGaoChuLiQi
+	guangGaoChuliDuiXiang = handler.GouJianGuangGaoChuLiQi()
+
+	var genLuJing string
+	genLuJing = "/jiekou/di_yi_ban"
+
+	var yiJiLuYouZu *gin.RouterGroup
+	yiJiLuYouZu = luYouYinQing.Group(genLuJing)
 	{
-		// 用户相关路由
-		users := v1.Group("/users")
+		var yongHuLuJing string
+		yongHuLuJing = "/yonghu_mo_kuai"
+
+		var yongHuZu *gin.RouterGroup
+		yongHuZu = yiJiLuYouZu.Group(yongHuLuJing)
 		{
-			users.GET("/:id", userHandler.GetUserInfo)
-			users.POST("/", userHandler.CreateOrUpdateUser)
-			users.PUT("/:id/login-time", userHandler.UpdateUserLoginTime)
+			var huoQuId string
+			huoQuId = "/:bianhao"
+			yongHuZu.GET(huoQuId, yongHuChuliDuiXiang.HuoQuYongHuXinXiJieKou)
+
+			var chuangJian string
+			chuangJian = "/chuangjian"
+			yongHuZu.POST(chuangJian, yongHuChuliDuiXiang.BaoCunYongHuXinXiJieKou)
+
+			var gengXinShiJian string
+			gengXinShiJian = "/:bianhao/denglu_shijian"
+			yongHuZu.PUT(gengXinShiJian, yongHuChuliDuiXiang.GengXinDengLuShiJianJieKou)
 		}
 
-		// 体力相关路由
-		energy := v1.Group("/energy")
+		var tiLiLuJing string
+		tiLiLuJing = "/tili_mo_kuai"
+
+		var tiLiZu *gin.RouterGroup
+		tiLiZu = yiJiLuYouZu.Group(tiLiLuJing)
 		{
-			energy.GET("/:id", energyHandler.GetEnergy)
-			energy.POST("/init", energyHandler.InitEnergy)
+			var chaXunTiLi string
+			chaXunTiLi = "/:bianhao"
+			tiLiZu.GET(chaXunTiLi, tiLiChuliDuiXiang.HuoQuWanJiaTiLiJieKou)
+
+			var chuShiHuaTiLi string
+			chuShiHuaTiLi = "/chushihua"
+			tiLiZu.POST(chuShiHuaTiLi, tiLiChuliDuiXiang.ChuShiHuaTiLiJieKou)
 		}
 
-		// 游戏进度相关路由
-		games := v1.Group("/games")
+		var youXiLuJing string
+		youXiLuJing = "/youxi_mo_kuai"
+
+		var youXiZu *gin.RouterGroup
+		youXiZu = yiJiLuYouZu.Group(youXiLuJing)
 		{
-			games.GET("/:id/progress/:gameId", gameHandler.GetGameProgress)
-			games.POST("/progress", gameHandler.UpdateGameProgress)
-			games.GET("/:gameId/leaderboard", gameHandler.GetLeaderboard)
+			var chaXunJinDu string
+			chaXunJinDu = "/:bianhao/jindu/:youxibianhao"
+			youXiZu.GET(chaXunJinDu, youXiChuliDuiXiang.HuoQuYouXiJinDuJieKou)
+
+			var baoCunJinDu string
+			baoCunJinDu = "/baocun_jindu"
+			youXiZu.POST(baoCunJinDu, youXiChuliDuiXiang.GengXinYouXiJinDuJieKou)
+
+			var paiHangBang string
+			paiHangBang = "/:youxibianhao/paihangbang"
+			youXiZu.GET(paiHangBang, youXiChuliDuiXiang.HuoQuPaiHangBangJieKou)
 		}
 
-		// 广告相关路由
-		ads := v1.Group("/ads")
+		var guangGaoLuJing string
+		guangGaoLuJing = "/guanggao_mo_kuai"
+
+		var guangGaoZu *gin.RouterGroup
+		guangGaoZu = yiJiLuYouZu.Group(guangGaoLuJing)
 		{
-			ads.POST("/watch", adHandler.RecordAdWatch)
-			ads.GET("/free-quota/:id/:gameId", adHandler.GetFreeAdQuota)
-			ads.POST("/free-quota/:id/:gameId/use", adHandler.UseFreeAd)
+			var jiLuGuanKan string
+			jiLuGuanKan = "/jilu_guankan"
+			guangGaoZu.POST(jiLuGuanKan, guangGaoChuliDuiXiang.JiLuGuangGaoGuanKanJieKou)
+
+			var mianGgEdu string
+			mianGgEdu = "/mianfei_edu/:bianhao/:youxibianhao"
+			guangGaoZu.GET(mianGgEdu, guangGaoChuliDuiXiang.HuoQuMianGgEduJieKou)
+
+			var shiYongMianGg string
+			shiYongMianGg = "/shiyong_mianfei/:bianhao/:youxibianhao"
+			guangGaoZu.POST(shiYongMianGg, guangGaoChuliDuiXiang.ShiYongMianGgEduJieKou)
 		}
 	}
 
-	return r
+	return luYouYinQing
 }

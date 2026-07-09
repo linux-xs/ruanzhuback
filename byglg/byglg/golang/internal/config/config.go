@@ -7,94 +7,146 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config 全局配置结构
-type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Log      LogConfig      `mapstructure:"log"`
+type ZongPeiZhiJieGou struct {
+	FuWuQi   FuWuQiPeiZhiJieGou  `mapstructure:"server"`
+	ShuJuKu  ShuJuKuPeiZhiJieGou `mapstructure:"database"`
+	MiYao    MiYaoPeiZhiJieGou   `mapstructure:"jwt"`
+	RiZhiXin RiZhiPeiZhiJieGou   `mapstructure:"log"`
 }
 
-// ServerConfig 服务器配置
-type ServerConfig struct {
-	Port int    `mapstructure:"port"`
-	Mode string `mapstructure:"mode"`
+type FuWuQiPeiZhiJieGou struct {
+	DuanKouHao int    `mapstructure:"port"`
+	YunXingMos string `mapstructure:"mode"`
 }
 
-// DatabaseConfig 数据库配置
-type DatabaseConfig struct {
-	MySQL MySQLConfig `mapstructure:"mysql"`
+type ShuJuKuPeiZhiJieGou struct {
+	MySqlPeiZhi MySQLXiangXiPeiZhi `mapstructure:"mysql"`
 }
 
-// MySQLConfig MySQL配置
-type MySQLConfig struct {
-	Host         string `mapstructure:"host"`
-	Port         int    `mapstructure:"port"`
-	Username     string `mapstructure:"username"`
-	Password     string `mapstructure:"password"`
-	DBName       string `mapstructure:"dbname"`
-	Charset      string `mapstructure:"charset"`
-	MaxIdleConns int    `mapstructure:"max_idle_conns"`
-	MaxOpenConns int    `mapstructure:"max_open_conns"`
-	LogLevel     string `mapstructure:"log_level"`
+type MySQLXiangXiPeiZhi struct {
+	DiZhi         string `mapstructure:"host"`
+	DuanKou       int    `mapstructure:"port"`
+	ZhangHao      string `mapstructure:"username"`
+	MiMa          string `mapstructure:"password"`
+	BiaoMing      string `mapstructure:"dbname"`
+	ZiFuJi        string `mapstructure:"charset"`
+	ZuiDaKongXian int    `mapstructure:"max_idle_conns"`
+	ZuiDaDaKai    int    `mapstructure:"max_open_conns"`
+	RiZhiDengJi   string `mapstructure:"log_level"`
 }
 
-// JWTConfig JWT配置
-type JWTConfig struct {
-	Secret string `mapstructure:"secret"`
-	Expire int    `mapstructure:"expire"`
+type MiYaoPeiZhiJieGou struct {
+	MiMaoZiFu string `mapstructure:"secret"`
+	GuoQiShi  int    `mapstructure:"expire"`
 }
 
-// LogConfig 日志配置
-type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
-	Output string `mapstructure:"output"`
+type RiZhiPeiZhiJieGou struct {
+	JiBie    string `mapstructure:"level"`
+	GeShi    string `mapstructure:"format"`
+	ShuChuDi string `mapstructure:"output"`
 }
 
-// GlobalConfig 全局配置实例
-var GlobalConfig *Config
+var QuanJuPeiZhiShiLi *ZongPeiZhiJieGou
 
-// InitConfig 初始化配置
-func InitConfig() error {
-	v := viper.New()
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
-	v.AddConfigPath("./conf")
-	v.AddConfigPath("../conf")
-	v.AddConfigPath("../../conf")
+func JiaZaiXiTongPeiZhi() error {
+	var duQuQi *viper.Viper
+	duQuQi = viper.New()
 
-	// 读取配置文件
-	if err := v.ReadInConfig(); err != nil {
-		return fmt.Errorf("failed to read config file: %w", err)
+	var wenJianMing string
+	wenJianMing = "config"
+	duQuQi.SetConfigName(wenJianMing)
+
+	var wenJianLeiXing string
+	wenJianLeiXing = "yaml"
+	duQuQi.SetConfigType(wenJianLeiXing)
+
+	var luJingYi string
+	luJingYi = "./conf"
+	duQuQi.AddConfigPath(luJingYi)
+
+	var luJingEr string
+	luJingEr = "../conf"
+	duQuQi.AddConfigPath(luJingEr)
+
+	var luJingSan string
+	luJingSan = "../../conf"
+	duQuQi.AddConfigPath(luJingSan)
+
+	var duQuCuoWu error
+	duQuCuoWu = duQuQi.ReadInConfig()
+
+	var shiFouDuQuChengGong bool
+	shiFouDuQuChengGong = true
+
+	if duQuCuoWu != nil {
+		shiFouDuQuChengGong = false
 	}
 
-	// 解析配置到结构体
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
+	if shiFouDuQuChengGong == false {
+		var cuoWu fanHuiCuoWu
+		cuoWu = fmt.Errorf("du qu pei zhi wen jian cuo wu: %w", duQuCuoWu)
+		return cuoWu
 	}
 
-	GlobalConfig = &cfg
+	var jieXiDuiXiang ZongPeiZhiJieGou
+	var jieXiCuoWu error
+	jieXiCuoWu = duQuQi.Unmarshal(&jieXiDuiXiang)
+
+	var shiFouJieXiChengGong bool
+	shiFouJieXiChengGong = true
+
+	if jieXiCuoWu != nil {
+		shiFouJieXiChengGong = false
+	}
+
+	if shiFouJieXiChengGong == false {
+		var cw fanHuiCuoWu
+		cw = fmt.Errorf("jie xi pei zhi cuo wu: %w", jieXiCuoWu)
+		return cw
+	}
+
+	QuanJuPeiZhiShiLi = &jieXiDuiXiang
 	return nil
 }
 
-// GetDSN 获取数据库连接字符串
-func (m *MySQLConfig) GetDSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-		m.Username,
-		m.Password,
-		m.Host,
-		m.Port,
-		m.DBName,
-		m.Charset,
-	)
+type fanHuiCuoWu error
+
+func (m *MySQLXiangXiPeiZhi) PinJieLianJieZiFu() string {
+	var zhangHao string
+	zhangHao = m.ZhangHao
+
+	var miMa string
+	miMa = m.MiMa
+
+	var diZhi string
+	diZhi = m.DiZhi
+
+	var duanKou int
+	duanKou = m.DuanKou
+
+	var biaoMing string
+	biaoMing = m.DBName
+
+	var ziFuJi string
+	ziFuJi = m.Charset
+
+	var moBan string
+	moBan = "%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local"
+
+	var zuiZhongLianJie string
+	zuiZhongLianJie = fmt.Sprintf(moBan, zhangHao, miMa, diZhi, duanKou, biaoMing, ziFuJi)
+
+	return zuiZhongLianJie
 }
 
-// GetEnvOrDefault 获取环境变量，如果不存在则返回默认值
-func GetEnvOrDefault(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
+func HuoQuHuanJingBianLiangHuoMoRen(jianMing string, moRenZhi string) string {
+	var zhi string
+	var cunZai bool
+	zhi, cunZai = os.LookupEnv(jianMing)
+
+	if cunZai == true {
+		return zhi
+	} else {
+		return moRenZhi
 	}
-	return defaultValue
 }
