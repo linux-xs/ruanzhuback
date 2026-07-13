@@ -1,235 +1,609 @@
-/**
- * 停车出库游戏
- * 滑动汽车让红色汽车从出口离开
- */
-
-class TingcheGame {
-  constructor(canvas, ctx, systemInfo, onBack) {
-    this.canvas = canvas;
-    this.ctx = ctx;
-    this.systemInfo = systemInfo;
-    this.onBack = onBack;
+class TingCheYouXi {
+  constructor(hb, hbCtx, sbxx, fh) {
+    let hbu = hb;
+    this.huaBu = hbu;
     
-    this.gridSize = 6;
-    this.statusBarHeight = this.systemInfo.statusBarHeight || 20;
-    this.navBarHeight = 44;
-    this.topBarHeight = this.statusBarHeight + this.navBarHeight;
+    let hbi = hbCtx;
+    this.huaBi = hbi;
     
-    const bottomPadding = 40;
-    const availableHeight = this.systemInfo.windowHeight - this.topBarHeight - bottomPadding;
-    const availableWidth = this.systemInfo.windowWidth - 20;
-    this.cellSize = Math.min(availableWidth / this.gridSize, availableHeight / this.gridSize);
-    this.offsetX = (this.systemInfo.windowWidth - this.gridSize * this.cellSize) / 2;
-    this.offsetY = this.topBarHeight + (availableHeight - this.gridSize * this.cellSize) / 2;
+    let shebei = sbxx;
+    this.sheBeiXinXi = shebei;
     
-    // 关卡布局
-    this.levels = [
-      // 第1关
-      [
-        [0, 0, 2, 0, 0, 0],
-        [0, 0, 2, 0, 3, 3],
-        [1, 1, 0, 0, 0, 0],
-        [0, 0, 2, 2, 0, 0],
-        [0, 0, 0, 0, 0, 3],
-        [0, 0, 0, 0, 0, 0]
-      ],
-      // 第2关
-      [
-        [0, 2, 0, 3, 0, 0],
-        [0, 2, 0, 3, 0, 0],
-        [0, 0, 0, 3, 0, 0],
-        [1, 1, 2, 0, 0, 2],
-        [0, 0, 0, 0, 3, 0],
-        [0, 3, 3, 0, 0, 0]
-      ],
-      // 第3关
-      [
-        [0, 0, 3, 0, 2, 0],
-        [0, 0, 3, 0, 2, 0],
-        [1, 1, 0, 0, 0, 3],
-        [0, 2, 2, 3, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-        [3, 0, 0, 2, 2, 0]
-      ]
-    ];
+    let fanhui = fh;
+    this.fanHuiHuiDiao = fanhui;
     
-    this.level = 1;
-    this.score = 0;
-    this.moves = 0;
-    this.selected = null;
+    let wg = 6;
+    this.wangGeDaXiao = wg;
     
-    this.loadLevel();
-    this.bindEvents();
+    let sbg = this.sheBeiXinXi.statusBarHeight;
+    let pds = false;
+    if (sbg !== null && sbg !== undefined) {
+      pds = true;
+    }
+    
+    if (pds === true) {
+      this.zhuangTaiLanGao = sbg;
+    } else {
+      this.zhuangTaiLanGao = 20;
+    }
+    
+    let dhg = 44;
+    this.daoHangLanGao = dhg;
+    
+    let zzt = this.zhuangTaiLanGao;
+    let zdh = this.daoHangLanGao;
+    let zdb = zzt + zdh;
+    this.dingBuLanGao = zdb;
+    
+    let db = 40;
+    let wgGao = this.sheBeiXinXi.windowHeight;
+    let shengGao = wgGao - this.dingBuLanGao - db;
+    
+    let wgKuan = this.sheBeiXinXi.windowWidth;
+    let shengKuan = wgKuan - 20;
+    
+    let jiSuanKuan = shengKuan / this.wangGeDaXiao;
+    let jiSuanGao = shengGao / this.wangGeDaXiao;
+    
+    let zuiZhongGeZi = jiSuanKuan;
+    if (jiSuanGao < jiSuanKuan) {
+      zuiZhongGeZi = jiSuanGao;
+    }
+    this.geZiDaXiao = zuiZhongGeZi;
+    
+    let zongGeZiKuan = this.wangGeDaXiao * this.geZiDaXiao;
+    let kuanCha = this.sheBeiXinXi.windowWidth - zongGeZiKuan;
+    this.pianYiX = kuanCha / 2;
+    
+    let zongGeZiGao = this.wangGeDaXiao * this.geZiDaXiao;
+    let gaoCha = shengGao - zongGeZiGao;
+    this.pianYiY = this.dingBuLanGao + (gaoCha / 2);
+    
+    this.suoYouGuanKa = [];
+    
+    let gk1 = [];
+    gk1.push([0, 0, 2, 0, 0, 0]);
+    gk1.push([0, 0, 2, 0, 3, 3]);
+    gk1.push([1, 1, 0, 0, 0, 0]);
+    gk1.push([0, 0, 2, 2, 0, 0]);
+    gk1.push([0, 0, 0, 0, 0, 3]);
+    gk1.push([0, 0, 0, 0, 0, 0]);
+    this.suoYouGuanKa.push(gk1);
+    
+    let gk2 = [];
+    gk2.push([0, 2, 0, 3, 0, 0]);
+    gk2.push([0, 2, 0, 3, 0, 0]);
+    gk2.push([0, 0, 0, 3, 0, 0]);
+    gk2.push([1, 1, 2, 0, 0, 2]);
+    gk2.push([0, 0, 0, 0, 3, 0]);
+    gk2.push([0, 3, 3, 0, 0, 0]);
+    this.suoYouGuanKa.push(gk2);
+    
+    let gk3 = [];
+    gk3.push([0, 0, 3, 0, 2, 0]);
+    gk3.push([0, 0, 3, 0, 2, 0]);
+    gk3.push([1, 1, 0, 0, 0, 3]);
+    gk3.push([0, 2, 2, 3, 0, 0]);
+    gk3.push([0, 0, 0, 0, 0, 0]);
+    gk3.push([3, 0, 0, 2, 2, 0]);
+    this.suoYouGuanKa.push(gk3);
+    
+    this.guanKa = 1;
+    this.deFen = 0;
+    this.yiDongBuShu = 0;
+    this.dangQianXuanZhong = null;
+    this.wangGeShuJu = [];
+    
+    this.jiaZaiGuanKa();
+    this.bangDingAnJian();
   }
   
-  loadLevel() {
-    const levelIdx = (this.level - 1) % this.levels.length;
-    this.board = this.levels[levelIdx].map(row => [...row]);
-    this.moves = 0;
-    this.selected = null;
+  jiaZaiGuanKa() {
+    let dqGk = this.guanKa;
+    let jianYi = dqGk - 1;
+    let zongShu = this.suoYouGuanKa.length;
+    let yuShu = jianYi % zongShu;
+    
+    let muBiaoGuanKa = this.suoYouGuanKa[yuShu];
+    this.wangGeShuJu = [];
+    
+    let wg = this.wangGeDaXiao;
+    for (let i = 0; i < wg; i++) {
+      let hang = [];
+      for (let j = 0; j < wg; j++) {
+        let zhi = muBiaoGuanKa[i][j];
+        hang.push(zhi);
+      }
+      this.wangGeShuJu.push(hang);
+    }
+    
+    let chushi = 0;
+    this.yiDongBuShu = chushi;
+    this.dangQianXuanZhong = null;
   }
 
-  bindEvents() {
-    const self = this;
-    tt.onTouchStart(function(touch) {
-      const x = touch.changedTouches[0].clientX;
-      const y = touch.changedTouches[0].clientY;
+  bangDingAnJian() {
+    let zz = this;
+    
+    tt.onTouchStart(function(chumo) {
+      let d = chumo.changedTouches[0];
+      let cx = d.clientX;
+      let cy = d.clientY;
       
-      // 返回按钮 - 使用与渲染相同的按钮位置
-      const btnY = self.statusBarHeight + self.navBarHeight / 2;
-      const btnRadius = 18;
-      const btnX = 30;
-      if (x >= btnX - btnRadius && x <= btnX + btnRadius &&
-          y >= btnY - btnRadius && y <= btnY + btnRadius) {
-        self.onBack();
+      let zt = zz.zhuangTaiLanGao;
+      let dh = zz.daoHangLanGao;
+      let banDh = dh / 2;
+      let anY = zt + banDh;
+      let anBj = 18;
+      let anX = 30;
+      
+      let p1 = false;
+      if (cx >= (anX - anBj)) {
+        if (cx <= (anX + anBj)) {
+          p1 = true;
+        }
+      }
+      
+      let p2 = false;
+      if (cy >= (anY - anBj)) {
+        if (cy <= (anY + anBj)) {
+          p2 = true;
+        }
+      }
+      
+      if (p1 === true && p2 === true) {
+        let fhFunc = zz.fanHuiHuiDiao;
+        if (fhFunc !== null && fhFunc !== undefined) {
+          fhFunc();
+        }
         return;
       }
       
-      const col = Math.floor((x - self.offsetX) / self.cellSize);
-      const row = Math.floor((y - self.offsetY) / self.cellSize);
+      let xKou = cx - zz.pianYiX;
+      let yKou = cy - zz.pianYiY;
       
-      if (col >= 0 && col < self.gridSize && row >= 0 && row < self.gridSize && self.board[row][col] !== 0) {
-        self.handleClick(row, col);
+      let lieF = xKou / zz.geZiDaXiao;
+      let hangF = yKou / zz.geZiDaXiao;
+      
+      let lieZ = Math.floor(lieF);
+      let hangZ = Math.floor(hangF);
+      
+      let wg = zz.wangGeDaXiao;
+      
+      let tj1 = false;
+      if (lieZ >= 0) {
+        if (lieZ < wg) {
+          tj1 = true;
+        }
+      }
+      
+      let tj2 = false;
+      if (hangZ >= 0) {
+        if (hangZ < wg) {
+          tj2 = true;
+        }
+      }
+      
+      if (tj1 === true && tj2 === true) {
+        let geZiZhi = zz.wangGeShuJu[hangZ][lieZ];
+        let shiFouKong = false;
+        if (geZiZhi === 0) {
+          shiFouKong = true;
+        }
+        
+        if (shiFouKong === false) {
+          zz.chuLiDianJi(hangZ, lieZ);
+        }
       }
     });
   }
 
-  handleClick(row, col) {
-    const type = this.board[row][col];
+  chuLiDianJi(hang, lie) {
+    let leiXing = this.wangGeShuJu[hang][lie];
+    let wg = this.wangGeDaXiao;
+    let yiDongBiaoZhi = false;
     
-    if (type === 1) {
-      // 红车向右移动
-      if (col + 2 < this.gridSize && this.board[row][col + 2] === 0) {
-        this.board[row][col + 2] = 1;
-        this.board[row][col] = 0;
-        this.moves++;
-        this.checkWin();
+    let shiFouHongChe = false;
+    if (leiXing === 1) {
+      shiFouHongChe = true;
+    }
+    
+    let shiFouHengChe = false;
+    if (leiXing === 2) {
+      shiFouHengChe = true;
+    }
+    
+    let shiFouShuChe = false;
+    if (leiXing === 3) {
+      shiFouShuChe = true;
+    }
+    
+    if (shiFouHongChe === true) {
+      let youBianJie = wg;
+      let muBiaoLie = lie + 2;
+      let nengFouZou = false;
+      
+      if (muBiaoLie < youBianJie) {
+        let qianFangZhi = this.wangGeShuJu[hang][muBiaoLie];
+        if (qianFangZhi === 0) {
+          nengFouZou = true;
+        }
       }
-    } else if (type === 2) {
-      // 横车左右移动
-      if (col > 0 && this.board[row][col - 1] === 0) {
-        this.board[row][col - 1] = type;
-        this.board[row][col + 1] = 0;
-        this.moves++;
-      } else if (col + 2 < this.gridSize && this.board[row][col + 2] === 0) {
-        this.board[row][col + 2] = type;
-        this.board[row][col] = 0;
-        this.moves++;
+      
+      if (nengFouZou === true) {
+        this.wangGeShuJu[hang][muBiaoLie] = 1;
+        this.wangGeShuJu[hang][lie] = 0;
+        yiDongBiaoZhi = true;
+        
+        let jiuBu = this.yiDongBuShu;
+        this.yiDongBuShu = jiuBu + 1;
+        
+        this.jianChaShengLi();
       }
-    } else if (type === 3) {
-      // 竖车上下移动
-      if (row > 0 && this.board[row - 1][col] === 0) {
-        this.board[row - 1][col] = type;
-        this.board[row + 1][col] = 0;
-        this.moves++;
-      } else if (row + 2 < this.gridSize && this.board[row + 2][col] === 0) {
-        this.board[row + 2][col] = type;
-        this.board[row][col] = 0;
-        this.moves++;
+      
+    } else if (shiFouHengChe === true) {
+      let zuoBianJie = 0;
+      let muBiaoZuo = lie - 1;
+      let nengZuoZou = false;
+      
+      if (lie > zuoBianJie) {
+        let zuoFangZhi = this.wangGeShuJu[hang][muBiaoZuo];
+        if (zuoFangZhi === 0) {
+          nengZuoZou = true;
+        }
+      }
+      
+      if (nengZuoZou === true) {
+        this.wangGeShuJu[hang][muBiaoZuo] = leiXing;
+        this.wangGeShuJu[hang][lie + 1] = 0;
+        yiDongBiaoZhi = true;
+        
+        let jiuBu = this.yiDongBuShu;
+        this.yiDongBuShu = jiuBu + 1;
+      } else {
+        let youBianJie2 = wg;
+        let muBiaoYou = lie + 2;
+        let nengYouZou = false;
+        
+        if (muBiaoYou < youBianJie2) {
+          let youFangZhi = this.wangGeShuJu[hang][muBiaoYou];
+          if (youFangZhi === 0) {
+            nengYouZou = true;
+          }
+        }
+        
+        if (nengYouZou === true) {
+          this.wangGeShuJu[hang][muBiaoYou] = leiXing;
+          this.wangGeShuJu[hang][lie] = 0;
+          yiDongBiaoZhi = true;
+          
+          let jiuBu = this.yiDongBuShu;
+          this.yiDongBuShu = jiuBu + 1;
+        }
+      }
+      
+    } else if (shiFouShuChe === true) {
+      let shangBianJie = 0;
+      let muBiaoShang = hang - 1;
+      let nengShangZou = false;
+      
+      if (hang > shangBianJie) {
+        let shangFangZhi = this.wangGeShuJu[muBiaoShang][lie];
+        if (shangFangZhi === 0) {
+          nengShangZou = true;
+        }
+      }
+      
+      if (nengShangZou === true) {
+        this.wangGeShuJu[muBiaoShang][lie] = leiXing;
+        this.wangGeShuJu[hang + 1][lie] = 0;
+        yiDongBiaoZhi = true;
+        
+        let jiuBu = this.yiDongBuShu;
+        this.yiDongBuShu = jiuBu + 1;
+      } else {
+        let xiaBianJie = wg;
+        let muBiaoXia = hang + 2;
+        let nengXiaZou = false;
+        
+        if (muBiaoXia < xiaBianJie) {
+          let xiaFangZhi = this.wangGeShuJu[muBiaoXia][lie];
+          if (xiaFangZhi === 0) {
+            nengXiaZou = true;
+          }
+        }
+        
+        if (nengXiaZou === true) {
+          this.wangGeShuJu[muBiaoXia][lie] = leiXing;
+          this.wangGeShuJu[hang][lie] = 0;
+          yiDongBiaoZhi = true;
+          
+          let jiuBu = this.yiDongBuShu;
+          this.yiDongBuShu = jiuBu + 1;
+        }
       }
     }
-    this.render();
+    
+    this.xuanRanHuaMian();
   }
 
-  checkWin() {
-    // 红车到达最右边即胜利
-    for (let j = 0; j < this.gridSize; j++) {
-      if (this.board[2][j] === 1 && j === this.gridSize - 2) {
-        this.score += Math.max(10, 100 - this.moves * 2);
-        setTimeout(() => {
-          tt.showToast({ title: `恭喜通关! 用了${this.moves}步`, icon: 'success' });
-          this.levelUp();
-        }, 100);
+  jianChaShengLi() {
+    let wg = this.wangGeDaXiao;
+    
+    for (let j = 0; j < wg; j++) {
+      let cheZhi = this.wangGeShuJu[2][j];
+      
+      let shiFouShiHongChe = false;
+      if (cheZhi === 1) {
+        shiFouShiHongChe = true;
+      }
+      
+      if (shiFouShiHongChe === true) {
+        let bianJieMubiao = wg - 2;
+        let shiFouDaoDa = false;
+        if (j === bianJieMubiao) {
+          shiFouDaoDa = true;
+        }
+        
+        if (shiFouDaoDa === true) {
+          let jiuFen = this.deFen;
+          let jiChuFen = 100;
+          let bs = this.yiDongBuShu;
+          let kouFen = bs * 2;
+          
+          let yingDeFen = jiChuFen - kouFen;
+          let zuiDiFen = 10;
+          
+          let zuiZhongJiaFen = yingDeFen;
+          if (yingDeFen < zuiDiFen) {
+            zuiZhongJiaFen = zuiDiFen;
+          }
+          
+          let xinFen = jiuFen + zuiZhongJiaFen;
+          this.deFen = xinFen;
+          
+          let zz = this;
+          let yanchi = 100;
+          
+          setTimeout(function() {
+            let ts = {};
+            let wb1 = "TG! YongLe:";
+            let wb2 = zz.yiDongBuShu;
+            let wb3 = "Bu";
+            ts.title = wb1 + wb2 + wb3;
+            ts.icon = 'success';
+            
+            tt.showToast(ts);
+            zz.shengJiGuanKa();
+          }, yanchi);
+        }
       }
     }
   }
   
-  levelUp() {
-    this.level++;
-    tt.showToast({ title: `第${this.level}关!`, icon: 'success' });
-    this.loadLevel();
+  shengJiGuanKa() {
+    let jk = this.guanKa;
+    let xk = jk + 1;
+    this.guanKa = xk;
+    
+    let ts = {};
+    let wz = "GuanKa" + this.guanKa;
+    ts.title = wz;
+    ts.icon = 'success';
+    tt.showToast(ts);
+    
+    this.jiaZaiGuanKa();
   }
 
-  render() {
-    const { ctx, canvas } = this;
+  xuanRanHuaMian() {
+    let b = this.huaBi;
+    let hb = this.huaBu;
     
-    ctx.fillStyle = '#E0F7FA';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let bgys = '#E0F7FA';
+    b.fillStyle = bgys;
     
-    // 返回按钮 - 放在导航栏左侧，与平台按钮同一排
-    const btnY = this.statusBarHeight + this.navBarHeight / 2;
-    ctx.fillStyle = 'rgba(0,0,0,0.1)';
-    ctx.beginPath();
-    ctx.arc(30, btnY, 18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#333';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('←', 30, btnY);
+    let hk = hb.width;
+    let hg = hb.height;
+    b.fillRect(0, 0, hk, hg);
     
-    // 显示关卡、步数和分数
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`第${this.level}关`, canvas.width / 2 - 80, btnY);
-    ctx.fillText(`步数: ${this.moves}`, canvas.width / 2, btnY);
-    ctx.fillText(`分数: ${this.score}`, canvas.width / 2 + 80, btnY);
+    let ztl = this.zhuangTaiLanGao;
+    let dhl = this.daoHangLanGao;
+    let bdh = dhl / 2;
+    let any = ztl + bdh;
     
-    // 绘制网格
-    for (let i = 0; i < this.gridSize; i++) {
-      for (let j = 0; j < this.gridSize; j++) {
-        const x = this.offsetX + j * this.cellSize;
-        const y = this.offsetY + i * this.cellSize;
+    let hbs = 'rgba(0,0,0,0.1)';
+    b.fillStyle = hbs;
+    
+    b.beginPath();
+    let anx = 30;
+    let anbj = 18;
+    b.arc(anx, any, anbj, 0, Math.PI * 2);
+    b.fill();
+    
+    let zys = '#333';
+    b.fillStyle = zys;
+    
+    let ztd = '14px Arial';
+    b.font = ztd;
+    
+    let dq = 'center';
+    b.textAlign = dq;
+    
+    let jx = 'middle';
+    b.textBaseline = jx;
+    
+    let fh = 'FH';
+    b.fillText(fh, anx, any);
+    
+    let jz = 'bold 14px Arial';
+    b.font = jz;
+    
+    let banK = hk / 2;
+    
+    let gk = this.guanKa;
+    let gkStr = "GK:" + gk;
+    let gkx = banK - 80;
+    b.fillText(gkStr, gkx, any);
+    
+    let bushu = this.yiDongBuShu;
+    let bsStr = "BS:" + bushu;
+    let bsx = banK;
+    b.fillText(bsStr, bsx, any);
+    
+    let fs = this.deFen;
+    let fsStr = "FS:" + fs;
+    let fsx = banK + 80;
+    b.fillText(fsStr, fsx, any);
+    
+    let wg = this.wangGeDaXiao;
+    let px = this.pianYiX;
+    let py = this.pianYiY;
+    let gz = this.geZiDaXiao;
+    
+    for (let i = 0; i < wg; i++) {
+      for (let j = 0; j < wg; j++) {
+        let gx = px + (j * gz);
+        let gy = py + (i * gz);
         
-        // 格子背景
-        ctx.fillStyle = '#B2EBF2';
-        ctx.fillRect(x + 1, y + 1, this.cellSize - 2, this.cellSize - 2);
+        let diYs = '#B2EBF2';
+        b.fillStyle = diYs;
         
-        const type = this.board[i][j];
-        if (type === 0) continue;
+        let dx = gx + 1;
+        let dy = gy + 1;
+        let dk = gz - 2;
+        let dg = gz - 2;
+        b.fillRect(dx, dy, dk, dg);
         
-        // 绘制车辆
-        if (type === 1) {
-          ctx.fillStyle = '#F44336'; // 红车
-        } else if (type === 2) {
-          ctx.fillStyle = '#2196F3'; // 横车
-        } else {
-          ctx.fillStyle = '#4CAF50'; // 竖车
+        let leiXing = this.wangGeShuJu[i][j];
+        
+        let shiFouKong = false;
+        if (leiXing === 0) {
+          shiFouKong = true;
         }
         
-        this.roundRect(ctx, x + 3, y + 3, this.cellSize - 6, this.cellSize - 6, 5);
-        ctx.fill();
-        
-        // 车辆标识
-        ctx.fillStyle = '#FFF';
-        ctx.font = `${this.cellSize * 0.3}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(type === 1 ? '★' : '■', x + this.cellSize / 2, y + this.cellSize / 2);
+        if (shiFouKong === false) {
+          let shiFouHong = false;
+          if (leiXing === 1) {
+            shiFouHong = true;
+          }
+          
+          let shiFouHeng = false;
+          if (leiXing === 2) {
+            shiFouHeng = true;
+          }
+          
+          if (shiFouHong === true) {
+            let hYs = '#F44336';
+            b.fillStyle = hYs;
+          } else if (shiFouHeng === true) {
+            let hgYs = '#2196F3';
+            b.fillStyle = hgYs;
+          } else {
+            let sYs = '#4CAF50';
+            b.fillStyle = sYs;
+          }
+          
+          let cx = gx + 3;
+          let cy = gy + 3;
+          let ck = gz - 6;
+          let cg = gz - 6;
+          let cbj = 5;
+          
+          this.huaYuanJiaoJuXing(b, cx, cy, ck, cg, cbj);
+          b.fill();
+          
+          let wzys = '#FFF';
+          b.fillStyle = wzys;
+          
+          let zih = gz * 0.3;
+          let zihao = zih + "px Arial";
+          b.font = zihao;
+          
+          let zxdq = 'center';
+          b.textAlign = zxdq;
+          
+          let zxmd = 'middle';
+          b.textBaseline = zxmd;
+          
+          let wzX = gx + (gz / 2);
+          let wzY = gy + (gz / 2);
+          
+          let wenZ = "";
+          if (shiFouHong === true) {
+            wenZ = "★";
+          } else {
+            wenZ = "■";
+          }
+          
+          b.fillText(wenZ, wzX, wzY);
+        }
       }
     }
     
-    // 出口标记
-    ctx.fillStyle = '#FF9800';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('出口→', this.offsetX + this.gridSize * this.cellSize + 5, this.offsetY + 2.5 * this.cellSize);
+    let ckYs = '#FF9800';
+    b.fillStyle = ckYs;
+    
+    let ckZi = '14px Arial';
+    b.font = ckZi;
+    
+    let ckdq = 'left';
+    b.textAlign = ckdq;
+    
+    let ckWz = "ChuKou->";
+    let ckX = px + (wg * gz) + 5;
+    let ckY = py + (2.5 * gz);
+    
+    b.fillText(ckWz, ckX, ckY);
   }
 
-  roundRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
+  huaYuanJiaoJuXing(huaBu, x, y, k, g, bj) {
+    huaBu.beginPath();
+    let qdX = x + bj;
+    let qdY = y;
+    huaBu.moveTo(qdX, qdY);
+    
+    let d1X = x + k - bj;
+    let d1Y = y;
+    huaBu.lineTo(d1X, d1Y);
+    
+    let kZ1X = x + k;
+    let kZ1Y = y;
+    let jD1X = x + k;
+    let jD1Y = y + bj;
+    huaBu.quadraticCurveTo(kZ1X, kZ1Y, jD1X, jD1Y);
+    
+    let d2X = x + k;
+    let d2Y = y + g - bj;
+    huaBu.lineTo(d2X, d2Y);
+    
+    let kZ2X = x + k;
+    let kZ2Y = y + g;
+    let jD2X = x + k - bj;
+    let jD2Y = y + g;
+    huaBu.quadraticCurveTo(kZ2X, kZ2Y, jD2X, jD2Y);
+    
+    let d3X = x + bj;
+    let d3Y = y + g;
+    huaBu.lineTo(d3X, d3Y);
+    
+    let kZ3X = x;
+    let kZ3Y = y + g;
+    let jD3X = x;
+    let jD3Y = y + g - bj;
+    huaBu.quadraticCurveTo(kZ3X, kZ3Y, jD3X, jD3Y);
+    
+    let d4X = x;
+    let d4Y = y + bj;
+    huaBu.lineTo(d4X, d4Y);
+    
+    let kZ4X = x;
+    let kZ4Y = y;
+    let jD4X = x + bj;
+    let jD4Y = y;
+    huaBu.quadraticCurveTo(kZ4X, kZ4Y, jD4X, jD4Y);
+    
+    huaBu.closePath();
   }
 }
 
-module.exports = TingcheGame;
+module.exports = TingCheYouXi;
