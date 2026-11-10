@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101822">
+<title>偷偷停个车</title>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="who">
+    <div class="avatar" id="avatarBadge">车</div>
+    <div class="who-text">
+      <div class="nick" id="nickText">未登录</div>
+      <div class="uid" id="uidText">—</div>
+    </div>
+  </div>
+  <div class="wallet">
+    <div class="chip coin">
+      <span class="chip-key">金币</span>
+      <strong id="coinText">0</strong>
+    </div>
+    <div class="chip card">
+      <span class="chip-key">幸运卡</span>
+      <strong id="cardText">0</strong>
+      <button class="chip-btn" id="claimCardBtn" type="button">获取</button>
+    </div>
+  </div>
+</header>
+
+<main class="stage">
+
+  <section class="view" id="view-home" data-view="home">
+    <div class="panel sign">
+      <div class="panel-head">
+        <h2>每日签到</h2>
+        <span class="tag" id="signState">今天还没签</span>
+      </div>
+      <div class="sign-row">
+        <button class="btn ghost" id="signPlainBtn" type="button">
+          <span class="btn-main">普通签到</span>
+          <span class="btn-sub">+5,000 金币</span>
+        </button>
+        <button class="btn warm" id="signCardBtn" type="button">
+          <span class="btn-main">幸运卡签到</span>
+          <span class="btn-sub">消耗 1 张 · +50,000 金币</span>
+        </button>
+      </div>
+      <div class="progress-row">
+        <div class="meter"><i id="expMeter"></i></div>
+        <span class="hint" id="expText">经验 0 / 0</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>我的车</h2>
+        <span class="tag" id="garageCount">0 / 0</span>
+      </div>
+      <div class="mini-grid" id="homeVehicles"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>我的车位</h2>
+        <span class="tag" id="lotCount">0 / 0</span>
+      </div>
+      <div class="mini-grid" id="homeLots"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>最近动态</h2>
+        <span class="tag">24 小时</span>
+      </div>
+      <ul class="feed" id="homeFeed"></ul>
+    </div>
+  </section>
+
+  <section class="view" id="view-garage" data-view="garage" hidden>
+    <div class="section-title">
+      <h2>车库</h2>
+      <p class="hint">空闲的车可以一键派出，也可以选人精准停过去</p>
+    </div>
+    <div class="card-list" id="garageList"></div>
+  </section>
+
+  <section class="view" id="view-lot" data-view="lot" hidden>
+    <div class="section-title">
+      <h2>我的车位</h2>
+      <p class="hint">停在你家的车超过两小时就能贴条，拿走两成收益</p>
+    </div>
+    <div class="cell-grid" id="lotGrid"></div>
+    <div class="card-list" id="lotOccupants"></div>
+  </section>
+
+  <section class="view" id="view-contacts" data-view="contacts" hidden>
+    <div class="search-box">
+      <input id="searchInput" type="text" maxlength="8" placeholder="输入五位玩家号，例如 A8K3M">
+      <button class="btn solid" id="searchBtn" type="button">找人</button>
+    </div>
+    <div class="card-list" id="searchCard"></div>
+
+    <div class="tabs" id="contactTabs">
+      <button class="tab on" data-tab="friend" type="button">好友</button>
+      <button class="tab" data-tab="foe" type="button">仇人</button>
+      <button class="tab" data-tab="feed" type="button">动态</button>
+      <button class="tab" data-tab="near" type="button">推荐</button>
+    </div>
+    <div class="card-list" id="contactList"></div>
+  </section>
+
+  <section class="view" id="view-catalog" data-view="catalog" hidden>
+    <div class="section-title">
+      <h2>车辆图鉴</h2>
+      <p class="hint" id="catalogHint">每升一级解锁一款新车</p>
+    </div>
+    <div class="card-list" id="catalogList"></div>
+  </section>
+
+</main>
+
+<nav class="navbar">
+  <button class="nav on" data-goto="home" type="button"><span>首页</span></button>
+  <button class="nav" data-goto="garage" type="button"><span>车库</span></button>
+  <button class="nav" data-goto="lot" type="button"><span>车位</span></button>
+  <button class="nav" data-goto="contacts" type="button"><span>通讯录</span></button>
+  <button class="nav" data-goto="catalog" type="button"><span>图鉴</span></button>
+</nav>
+
+<div class="mask" id="modalMask" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="modalTitle">详情</h3>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="assets/core/fmt.js"></script>
+<script src="assets/core/api.js"></script>
+<script src="assets/core/store.js"></script>
+<script src="assets/views/home.js"></script>
+<script src="assets/views/garage.js"></script>
+<script src="assets/views/lot.js"></script>
+<script src="assets/views/contacts.js"></script>
+<script src="assets/views/catalog.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
